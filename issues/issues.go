@@ -1,14 +1,15 @@
 package issues
 
 import (
-	"repos"
-	"github.com/google/go-github/github"
 	"context"
 	"fmt"
+
+	"github.com/google/go-github/github"
+	"github.com/meganabyte/github-orgs/repos"
 )
 
-func GetRepoIssues(ctx context.Context, client *github.Client, orgName string) ([]*github.Issue, 
-	[]*github.IssueComment, 
+func GetRepoIssues(ctx context.Context, client *github.Client, orgName string) ([]*github.Issue,
+	[]*github.IssueComment,
 	[]*github.IssueEvent, error) {
 	repos, _ := repos.GetRepos(ctx, orgName, client)
 	var list []*github.Issue
@@ -18,7 +19,7 @@ func GetRepoIssues(ctx context.Context, client *github.Client, orgName string) (
 		repoName := repo.GetName()
 		repoOwner := repo.GetOwner().GetLogin()
 		opt := &github.IssueListByRepoOptions{
-			State: "all", 
+			State:       "all",
 			ListOptions: github.ListOptions{PerPage: 30}}
 		for {
 			l, resp, err := client.Issues.ListByRepo(ctx, repoOwner, repoName, opt)
@@ -49,8 +50,8 @@ func GetRepoIssues(ctx context.Context, client *github.Client, orgName string) (
 	return list, comments, events, nil
 }
 
-func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client, username string) (map[string]int) {
-	list, _, _ , _ := GetRepoIssues(ctx, client, orgName)
+func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client, username string) map[string]int {
+	list, _, _, _ := GetRepoIssues(ctx, client, orgName)
 	m := make(map[string]int)
 	for _, issue := range list {
 		if issue.GetUser().GetLogin() == username {
@@ -65,7 +66,7 @@ func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client
 	return m
 }
 
-func GetIssueComments(ctx context.Context, orgName string, client *github.Client, username string) (map[string]int) {
+func GetIssueComments(ctx context.Context, orgName string, client *github.Client, username string) map[string]int {
 	_, list, _, _ := GetRepoIssues(ctx, client, orgName)
 	m := make(map[string]int)
 	for _, comment := range list {
@@ -81,7 +82,7 @@ func GetIssueComments(ctx context.Context, orgName string, client *github.Client
 	return m
 }
 
-func GetIssueEvents(ctx context.Context, orgName string, client *github.Client, username string) (map[string]int) {
+func GetIssueEvents(ctx context.Context, orgName string, client *github.Client, username string) map[string]int {
 	_, _, list, _ := GetRepoIssues(ctx, client, orgName)
 	m := make(map[string]int)
 	for _, event := range list {

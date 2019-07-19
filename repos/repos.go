@@ -1,8 +1,9 @@
 package repos
 
 import (
-	"github.com/google/go-github/github"
 	"context"
+
+	"github.com/google/go-github/github"
 )
 
 func GetRepos(ctx context.Context, orgName string, client *github.Client) ([]*github.Repository, error) {

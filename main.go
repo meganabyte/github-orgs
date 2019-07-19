@@ -5,11 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"members"
-	"commits"
-	"pulls"
-	"issues"
+
 	"github.com/google/go-github/github"
+	"github.com/meganabyte/github-orgs/commits"
+	"github.com/meganabyte/github-orgs/issues"
+	"github.com/meganabyte/github-orgs/members"
+	"github.com/meganabyte/github-orgs/pulls"
 	"golang.org/x/oauth2"
 )
 

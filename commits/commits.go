@@ -1,9 +1,10 @@
 package commits
 
 import (
-	"repos"
-	"github.com/google/go-github/github"
 	"context"
+
+	"github.com/google/go-github/github"
+	"github.com/meganabyte/github-orgs/repos"
 )
 
 func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string) (map[string]int, error) {
