@@ -1,10 +1,12 @@
 FROM golang:latest
 
-# environment vary
+ENV GO111MODULE off
+
 WORKDIR /go/src/app
 COPY . .
 
-RUN go get -d -v ./...
+RUN go get -d ./...
+
 RUN go install 
 
 CMD ["app"]
