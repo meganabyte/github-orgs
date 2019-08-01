@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
-	"flag"
+	//"flag"
 	"fmt"
 	"os"
-
 	"github.com/google/go-github/github"
 	"github.com/meganabyte/github-orgs/commits"
 	"github.com/meganabyte/github-orgs/issues"
@@ -15,8 +14,7 @@ import (
 )
 
 func main() {
-
-	flag.Parse()
+	/*flag.Parse()
 	args := flag.Args()
 	org := args[0]
 	if len(args) < 2 {
@@ -24,18 +22,17 @@ func main() {
 		os.Exit(1)
 	}
 	token := args[1]
+	*/
+	org := os.Getenv("ORG_NAME")
+	token := os.Getenv("OAUTH_TOKEN")
 	ctx, client := authentication(token)
 	users, _ := members.GetMembers(ctx, org, client)
 	for _, user := range users {
 		username := user.GetLogin()
 		c, _ := commits.GetUserCommits(ctx, org, client, username)
 		p, _ := pulls.GetUserPulls(ctx, org, client, username)
-		i := issues.GetIssuesCreated(ctx, org, client, username)
-		i2 := issues.GetIssueComments(ctx, org, client, username)
-		i3 := issues.GetIssueEvents(ctx, org, client, username)
+		i := issues.GetIssueTimes(ctx, org, client, username)
 		fmt.Println("Issues created by", username, ":", i)
-		fmt.Println("Issue comments created by", username, ":", i2)
-		fmt.Println("Issues closed by", username, ":", i3)
 		fmt.Println("Commits created by", username, ": ", c)
 		fmt.Println("Pulls created by", username, ": ", p)
 	}
