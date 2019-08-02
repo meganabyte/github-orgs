@@ -6,8 +6,8 @@ import (
 	"github.com/meganabyte/github-orgs/repos"
 )
 
-func GetRepoIssues(ctx context.Context, client *github.Client, orgName string) ([]*github.Issue,
-	[]*github.IssueComment, []*github.IssueEvent, error) {
+func GetRepoIssues(ctx context.Context, client *github.Client, orgName string) ([]*github.Issue, 
+		   []*github.IssueComment, []*github.IssueEvent, error) {
 	repos, _ := repos.GetRepos(ctx, orgName, client)
 	var list []*github.Issue
 	var comments []*github.IssueComment
