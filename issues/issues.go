@@ -33,8 +33,11 @@ func GetRepoIssues(ctx context.Context, client *github.Client, orgName string) (
 	return list, comments, events, nil
 }
 
-func GetIssueTimes(ctx context.Context, orgName string, client *github.Client, username string) map[string]int {
-	list, _, _, _ := GetRepoIssues(ctx, client, orgName)
+func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client, username string) (map[string]int, error) {
+	list, _, _, err := GetRepoIssues(ctx, client, orgName)
+	if err != nil {
+		return nil, err
+	}
 	m := make(map[string]int)
 	for _, issue := range list {
 		if issue.GetUser().GetLogin() == username {
@@ -46,5 +49,5 @@ func GetIssueTimes(ctx context.Context, orgName string, client *github.Client, u
 			}
 		}
 	}
-	return m
+	return m, nil
 }
