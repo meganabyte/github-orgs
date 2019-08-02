@@ -3,12 +3,10 @@ package issues
 import (
 	"context"
 	"github.com/google/go-github/github"
-	"github.com/meganabyte/github-orgs/repos"
 )
 
-func GetRepoIssues(ctx context.Context, client *github.Client, orgName string) ([]*github.Issue, 
-		   []*github.IssueComment, []*github.IssueEvent, error) {
-	repos, _ := repos.GetRepos(ctx, orgName, client)
+func GetRepoIssues(ctx context.Context, client *github.Client, orgName string, repos []*github.Repository) ([]*github.Issue,
+	[]*github.IssueComment, []*github.IssueEvent, error) {
 	var list []*github.Issue
 	var comments []*github.IssueComment
 	var events []*github.IssueEvent
@@ -33,8 +31,9 @@ func GetRepoIssues(ctx context.Context, client *github.Client, orgName string) (
 	return list, comments, events, nil
 }
 
-func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client, username string) (map[string]int, error) {
-	list, _, _, err := GetRepoIssues(ctx, client, orgName)
+func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client, username string, 
+					  repos []*github.Repository) (map[string]int, error) {
+	list, _, _, err := GetRepoIssues(ctx, client, orgName, repos)
 	if err != nil {
 		return nil, err
 	}
