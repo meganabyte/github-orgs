@@ -2,13 +2,11 @@ package commits
 
 import (
 	"context"
-
 	"github.com/google/go-github/github"
-	"github.com/meganabyte/github-orgs/repos"
 )
 
-func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string) (map[string]int, error) {
-	repos, _ := repos.GetRepos(ctx, orgName, client)
+func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string,
+		    repos []*github.Repository) (map[string]int, error) {
 	var list []*github.RepositoryCommit
 	for _, repo := range repos {
 		if repo.GetSize() != 0 {
