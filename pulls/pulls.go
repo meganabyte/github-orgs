@@ -2,14 +2,11 @@ package pulls
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/google/go-github/github"
-	"github.com/meganabyte/github-orgs/repos"
 )
 
-func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string) (map[string]int, error) {
-	repos, _ := repos.GetRepos(ctx, orgName, client)
+func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
+				  repos []*github.Repository) (map[string]int, error) {
 	var list []*github.PullRequest
 	for _, repo := range repos {
 		repoName := repo.GetName()
@@ -18,7 +15,6 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 		for {
 			l, resp, err := client.PullRequests.List(ctx, repoOwner, repoName, opt)
 			if err != nil {
-				fmt.Println(err)
 				return nil, err
 			}
 			list = append(list, l...)
