@@ -1,47 +1,75 @@
 package main
 
 import (
-	"context"
-	//"flag"
 	"fmt"
-	"os"
-	"github.com/google/go-github/github"
 	"github.com/meganabyte/github-orgs/commits"
 	"github.com/meganabyte/github-orgs/issues"
 	"github.com/meganabyte/github-orgs/members"
 	"github.com/meganabyte/github-orgs/pulls"
-	"golang.org/x/oauth2"
+	"github.com/meganabyte/github-orgs/repos"
+	"net/http"
+	"html/template"
+	"github.com/gorilla/mux"
+	"log"
 )
 
-func main() {
-	/*flag.Parse()
-	args := flag.Args()
-	org := args[0]
-	if len(args) < 2 {
-		fmt.Println("go run main <Organization Name> <OAUTH token>")
-		os.Exit(1)
-	}
-	token := args[1]
-	*/
-	org := os.Getenv("ORG_NAME")
-	token := os.Getenv("OAUTH_TOKEN")
-	ctx, client := authentication(token)
-	users, _ := members.GetMembers(ctx, org, client)
-	for _, user := range users {
-		username := user.GetLogin()
-		c, _ := commits.GetUserCommits(ctx, org, client, username)
-		p, _ := pulls.GetUserPulls(ctx, org, client, username)
-		i := issues.GetIssueTimes(ctx, org, client, username)
-		fmt.Println("Issues created by", username, ":", i)
-		fmt.Println("Commits created by", username, ": ", c)
-		fmt.Println("Pulls created by", username, ": ", p)
-	}
+type User struct {
+	Org string
+	Token string
+	Login string
 }
 
-func authentication(token string) (context.Context, *github.Client) {
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
-	return ctx, client
+type Data struct {
+	Issues map[string]int 
+	Pulls map[string]int 
+	Commits map[string]int	
+}
+
+var u User
+
+func main() {
+	router := mux.NewRouter()
+
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		t, err := template.ParseFiles("assets/index.html")
+		err = t.Execute(w, nil)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}).Methods("GET")
+
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		u.Org = r.FormValue("org")
+		u.Token = r.FormValue("token")
+		u.Login = r.FormValue("user")
+
+		t, err := template.ParseFiles("assets/report.html")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		ctx, client := members.Authentication(u.Token)
+		users, _ := members.GetMembers(ctx, u.Org, client)
+		if members.ContainsUser(users, u.Login) {
+			fmt.Println("Loading report for", u.Login, "...")
+		}
+
+		repos, _ := repos.GetRepos(ctx, u.Org, client)
+		i, _ := issues.GetIssuesCreated(ctx, u.Org, client, u.Login, repos)
+		c, _ := commits.GetUserCommits(ctx, u.Org, client, u.Login, repos)
+		p, _ := pulls.GetUserPulls(ctx, u.Org, client, u.Login, repos)
+		d := Data {
+			Issues: i,
+			Pulls: p,
+			Commits: c,
+		}
+
+		err = t.Execute(w, d)
+
+	}).Methods("POST")
+
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
