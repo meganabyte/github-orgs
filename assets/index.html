@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="/static/stylesheets/template.css">
+    </head>
+
+    <body>
+         
+        <form action="/" method="POST">
+            <h2> Github User Analytics Report</h2><br/>
+            <span class="input"></span>
+            <input type="text" name="org"
+            placeholder="Organization"
+            />
+            <span class="input"></span>
+            <input type="text" name="user"
+            placeholder="Github User Login"
+            />
+            <span id="passwordMeter"></span>
+            <input type="password" name="token"
+            id="password" placeholder="Github OAuth2 Token"
+            />
+            <input type="submit" value="Continue">
+        </form>
+    </body> 
+</html>
