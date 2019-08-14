@@ -4,9 +4,7 @@ import (
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 	"context"
-	"fmt"
 )
-
 func GetMembers(ctx context.Context, orgName string, client *github.Client) ([]*github.User, error) {
 	var list []*github.User
 	opt := &github.ListMembersOptions{ListOptions: github.ListOptions{PerPage: 30}}
@@ -36,7 +34,6 @@ func ContainsUser(users []*github.User, login string) bool {
 	for _, user := range users {
 		username := user.GetLogin()
 		if username == login {
-			fmt.Println("Loading report for", login, "...")
 			return true
 		}
 	}
