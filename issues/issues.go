@@ -53,12 +53,12 @@ func IssuesBase(m map[string]int) *charts.Bar {
 	var keys []string
 	nameItems := []string{}
 	countItems := []int{}
-	for k, v := range m {
+	for k := range m {
 		keys = append(keys, k)
-		countItems = append(countItems, v)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
+		countItems = append(countItems, m[k])
 		nameItems = append(nameItems, k)
 	}
 	bar := charts.NewBar()
