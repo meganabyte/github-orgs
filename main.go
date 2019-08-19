@@ -1,73 +1,97 @@
 package main
 
 import (
-	"fmt"
+	"html/template"
+	"log"
+	"net/http"
+	"os"
+	"github.com/gorilla/mux"
 	"github.com/meganabyte/github-orgs/commits"
 	"github.com/meganabyte/github-orgs/issues"
 	"github.com/meganabyte/github-orgs/members"
 	"github.com/meganabyte/github-orgs/pulls"
 	"github.com/meganabyte/github-orgs/repos"
-	"net/http"
-	"html/template"
-	"github.com/gorilla/mux"
-	"log"
 )
 
 type User struct {
-	Org string
+	Org   string
 	Token string
 	Login string
 }
 
 type Data struct {
-	Issues map[string]int 
-	Pulls map[string]int 
-	Commits map[string]int	
+	Issues  map[string]int
+	Pulls   map[string]int
+	Commits map[string]int
 }
 
-var u User
+var (
+	u User
+	d = Data{
+		Issues:  make(map[string]int),
+		Pulls:   make(map[string]int),
+		Commits: make(map[string]int),
+	}
+)
 
 func main() {
 	router := mux.NewRouter()
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		t, err := template.ParseFiles("assets/index.html")
+		if err != nil {
+			log.Println(err)
+			return
+		}
 		err = t.Execute(w, nil)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
 	}).Methods("GET")
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Println(err)
+			return
+		}
 		u.Org = r.FormValue("org")
 		u.Token = r.FormValue("token")
 		u.Login = r.FormValue("user")
 
-		t, err := template.ParseFiles("assets/report.html")
+		ctx, client := members.Authentication(u.Token)
+		repos, _ := repos.GetRepos(ctx, u.Org, client)
+
+		err = issues.GetIssuesCreated(ctx, u.Org, client, u.Login, repos, d.Issues)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
-
-		ctx, client := members.Authentication(u.Token)
-		users, _ := members.GetMembers(ctx, u.Org, client)
-		if members.ContainsUser(users, u.Login) {
-			fmt.Println("Loading report for", u.Login, "...")
+		err = commits.GetUserCommits(ctx, u.Org, client, u.Login, repos, d.Commits)
+		if err != nil {
+			log.Println(err)
+			return
 		}
-
-		repos, _ := repos.GetRepos(ctx, u.Org, client)
-		i, _ := issues.GetIssuesCreated(ctx, u.Org, client, u.Login, repos)
-		c, _ := commits.GetUserCommits(ctx, u.Org, client, u.Login, repos)
-		p, _ := pulls.GetUserPulls(ctx, u.Org, client, u.Login, repos)
-		d := Data {
-			Issues: i,
-			Pulls: p,
-			Commits: c,
+		err = pulls.GetUserPulls(ctx, u.Org, client, u.Login, repos, d.Pulls)
+		if err != nil {
+			log.Println(err)
+			return
 		}
-
-		err = t.Execute(w, d)
+		bar := commits.CommitsBase(d.Commits)
+		bar.Overlap(issues.IssuesBase(d.Issues), pulls.PullsBase(d.Pulls))
+		bar.Title = u.Login
+		f, err := os.Create("bar.html")
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		err = bar.Render(w, f)
+		if err != nil {
+			log.Println(err)
+			return
+		}
 
 	}).Methods("POST")
 
