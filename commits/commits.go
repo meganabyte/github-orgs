@@ -2,11 +2,13 @@ package commits
 
 import (
 	"context"
+	"sort"
 	"github.com/google/go-github/github"
+	"github.com/chenjiandongx/go-echarts/charts"
 )
 
 func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string,
-		    repos []*github.Repository) (map[string]int, error) {
+					repos []*github.Repository, m map[string]int) (error) {
 	var list []*github.RepositoryCommit
 	for _, repo := range repos {
 		if repo.GetSize() != 0 {
@@ -16,7 +18,7 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 			for {
 				l, resp, err := client.Repositories.ListCommits(ctx, repoOwner, repoName, opt)
 				if err != nil {
-					return nil, err
+					return err
 				}
 				list = append(list, l...)
 				if resp.NextPage == 0 {
@@ -26,9 +28,8 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 			}
 		}
 	}
-	m := make(map[string]int)
 	getCommitTimes(list, m)
-	return m, nil
+	return nil
 }
 
 func getCommitTimes(list []*github.RepositoryCommit, m map[string]int) {
@@ -41,4 +42,21 @@ func getCommitTimes(list []*github.RepositoryCommit, m map[string]int) {
 			m[time] = val + 1
 		}
 	}
+}
+
+func CommitsBase(m map[string]int) *charts.Bar {
+	var keys []string
+	nameItems := []string{}
+	countItems := []int{}
+	for k, v := range m {
+		keys = append(keys, k)
+		countItems = append(countItems, v)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		nameItems = append(nameItems, k)
+	}
+	bar := charts.NewBar()
+	bar.AddXAxis(nameItems).AddYAxis("Commits Created", countItems)
+	return bar
 }
