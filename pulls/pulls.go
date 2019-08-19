@@ -2,11 +2,13 @@ package pulls
 
 import (
 	"context"
+	"sort"
 	"github.com/google/go-github/github"
+	"github.com/chenjiandongx/go-echarts/charts"
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
-				  repos []*github.Repository) (map[string]int, error) {
+				  repos []*github.Repository, m map[string]int) (error) {
 	var list []*github.PullRequest
 	for _, repo := range repos {
 		repoName := repo.GetName()
@@ -15,7 +17,7 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 		for {
 			l, resp, err := client.PullRequests.List(ctx, repoOwner, repoName, opt)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			list = append(list, l...)
 			if resp.NextPage == 0 {
@@ -24,9 +26,8 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 			opt.Page = resp.NextPage
 		}
 	}
-	m := make(map[string]int)
 	GetPullsTimes(list, m, username)
-	return m, nil
+	return nil
 }
 
 func GetPullsTimes(list []*github.PullRequest, m map[string]int, username string) {
@@ -40,4 +41,21 @@ func GetPullsTimes(list []*github.PullRequest, m map[string]int, username string
 			}
 		}
 	}
+}
+
+func PullsBase(m map[string]int) *charts.Bar {
+	var keys []string
+	nameItems := []string{}
+	countItems := []int{}
+	for k, v := range m {
+		keys = append(keys, k)
+		countItems = append(countItems, v)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		nameItems = append(nameItems, k)
+	}
+	bar := charts.NewBar()
+	bar.AddXAxis(nameItems).AddYAxis("Pull Requests Opened", countItems)
+	return bar
 }
