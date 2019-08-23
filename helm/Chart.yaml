@@ -1,0 +1,9 @@
+apiVersion: v1
+name: achart
+version: 0.0.1
+description: Deploy a basic goLang web app
+sources:
+  - github.come/meganabyte/github-orgs
+maintainers:
+  - name: Megana Bobba
+    email: megbobba@gmail.com
