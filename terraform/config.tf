@@ -1,4 +1,6 @@
-provider "aws" {}
+provider "aws" {
+  region = "us-east-1"
+}
 
 resource "aws_instance" "example" {
   ami           = "ami-2757f631"
@@ -11,8 +13,8 @@ resource "aws_vpc" "example" {
   cidr_block = "10.0.0.0/16"
   tags = "${
     map(
-      "Name", "terraform-eks-node",
-      "kubernetes.io/cluster/terraform-eks", "shared",
+      "Name", "meg-app-node",
+      "kubernetes.io/cluster/meg-app", "shared",
     )
   }"
 }
@@ -24,8 +26,8 @@ resource "aws_subnet" "example" {
   vpc_id            = "${aws_vpc.example.id}"
   tags = "${
     map(
-     "Name", "terraform-eks-node",
-     "kubernetes.io/cluster/terraform-eks", "shared",
+     "Name", "meg-app-node",
+     "kubernetes.io/cluster/meg-app", "shared",
     )
   }"
 }
@@ -34,7 +36,7 @@ resource "aws_internet_gateway" "example" {
   vpc_id = "${aws_vpc.example.id}"
 
   tags = {
-    Name = "terraform-eks"
+    Name = "meg-app"
   }
 }
 
@@ -55,7 +57,7 @@ resource "aws_route_table_association" "example" {
 }
 
 resource "aws_security_group" "tf-eks-master" {
-  name        = "terraform-eks-cluster"
+  name        = "meg-app-cluster"
   description = "Cluster communication with worker nodes"
   vpc_id      = "${aws_vpc.example.id}"
 
@@ -67,12 +69,12 @@ resource "aws_security_group" "tf-eks-master" {
   }
 
   tags = {
-      Name = "terraform-eks"
+      Name = "meg-app"
   }
 }
 
 resource "aws_security_group" "tf-eks-node" {
-    name        = "terraform-eks-node"
+    name        = "meg-app-node"
     description = "Security group for all nodes in the cluster"
     vpc_id      = "${aws_vpc.example.id}"
  
@@ -85,8 +87,8 @@ resource "aws_security_group" "tf-eks-node" {
  
     tags = "${
       map(
-        "Name", "terraform-eks-node",
-        "kubernetes.io/cluster/terraform-eks", "owned",
+        "Name", "meg-app-node",
+        "kubernetes.io/cluster/meg-app", "owned",
       )
     }"
 }
@@ -121,7 +123,7 @@ resource "aws_iam_role_policy_attachment" "example-cluster-AmazonEKSServicePolic
 }
 
 resource "aws_eks_cluster" "tf_eks" {
-  name            = "terraform-eks"
+  name            = "meg-app"
   role_arn        = "${aws_iam_role.example-cluster.arn}"
 
   vpc_config {
@@ -136,7 +138,7 @@ resource "aws_eks_cluster" "tf_eks" {
 }
 
 resource "aws_iam_role" "tf-eks-node" {
-  name = "terraform-eks-node"
+  name = "meg-app-node"
  
   assume_role_policy = <<POLICY
 {
@@ -170,7 +172,7 @@ resource "aws_iam_role_policy_attachment" "tf-eks-node-AmazonEC2ContainerRegistr
 }
  
 resource "aws_iam_instance_profile" "node" {
-  name = "terraform-eks-node"
+  name = "meg-app-node"
   role = "${aws_iam_role.tf-eks-node.name}"
 }
 
@@ -181,7 +183,7 @@ data "aws_ami" "eks-worker" {
   }
  
   most_recent = true
-  owners      = ["310254572914"] # Amazon EKS AMI Account ID
+  owners      = ["amazon"] 
 }
 
 data "aws_region" "current" {}
@@ -190,7 +192,7 @@ locals {
   tf-eks-node-userdata = <<USERDATA
 #!/bin/bash
 set -o trace
-/etc/eks/bootstrap.sh --apiserver-endpoint '${aws_eks_cluster.tf_eks.endpoint}' --b64-cluster-ca '${aws_eks_cluster.tf_eks.certificate_authority.0.data}' 'terraform-eks'
+/etc/eks/bootstrap.sh --apiserver-endpoint '${aws_eks_cluster.tf_eks.endpoint}' --b64-cluster-ca '${aws_eks_cluster.tf_eks.certificate_authority.0.data}' 'meg-app'
 USERDATA
 }
 
@@ -198,8 +200,8 @@ resource "aws_launch_configuration" "example" {
   associate_public_ip_address = true
   iam_instance_profile        = "${aws_iam_instance_profile.node.name}"
   image_id                    = "${data.aws_ami.eks-worker.id}"
-  instance_type               = "m4.large"
-  name_prefix                 = "terraform-eks"
+  instance_type               = "t2.micro"
+  name_prefix                 = "meg-app"
   security_groups             = ["${aws_security_group.tf-eks-node.id}"]
   user_data_base64            = "${base64encode(local.tf-eks-node-userdata)}"
 
@@ -213,24 +215,24 @@ resource "aws_autoscaling_group" "example" {
   launch_configuration = "${aws_launch_configuration.example.id}"
   max_size             = 2
   min_size             = 1
-  name                 = "terraform-eks"
+  name                 = "meg-app"
   vpc_zone_identifier  = "${aws_subnet.example.*.id}"
 
   tag {
     key                 = "Name"
-    value               = "terraform-eks"
+    value               = "meg-app"
     propagate_at_launch = true
   }
 
   tag {
-    key                 = "kubernetes.io/cluster/terraform-eks"
+    key                 = "kubernetes.io/cluster/meg-app"
     value               = "owned"
     propagate_at_launch = true
   }
 }
 
 data "aws_eks_cluster_auth" "cluster_auth" {
-  name = "terraform-eks"
+  name = "meg-app"
 }
 
 provider "kubernetes" {
@@ -247,10 +249,6 @@ resource "kubernetes_config_map" "aws_auth_configmap" {
   }
 
   data = {
-    mapUsers = <<YAML
-- userarn: arn:aws:iam::310254572914:root
-  username: Administrator
-YAML
     mapRoles = <<YAML
 - rolearn: ${aws_iam_role.tf-eks-node.arn}
   username: system:node:{{EC2PrivateDNSName}}
