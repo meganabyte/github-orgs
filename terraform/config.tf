@@ -73,6 +73,16 @@ resource "aws_security_group" "tf-eks-master" {
   }
 }
 
+resource "aws_security_group_rule" "tf-eks-master-ingress-workstation-https" {
+  cidr_blocks       = ["50.230.15.130/32"]
+  description       = "Allow workstation to communicate with the cluster API Server"
+  from_port         = 443
+  protocol          = "tcp"
+  security_group_id = "${aws_security_group.tf-eks-master.id}"
+  to_port           = 443
+  type              = "ingress"
+}
+
 resource "aws_security_group" "tf-eks-node" {
     name        = "meg-app-node"
     description = "Security group for all nodes in the cluster"
@@ -91,6 +101,36 @@ resource "aws_security_group" "tf-eks-node" {
         "kubernetes.io/cluster/meg-app", "owned",
       )
     }"
+}
+
+resource "aws_security_group_rule" "tf-eks-node-ingress-self" {
+  description              = "Allow node to communicate with each other"
+  from_port                = 0
+  protocol                 = "-1"
+  security_group_id        = "${aws_security_group.tf-eks-node.id}"
+  source_security_group_id = "${aws_security_group.tf-eks-node.id}"
+  to_port                  = 65535
+  type                     = "ingress"
+}
+
+resource "aws_security_group_rule" "tf-eks-node-ingress-cluster" {
+  description              = "Allow worker Kubelets and pods to receive communication from the cluster control plane"
+  from_port                = 1025
+  protocol                 = "tcp"
+  security_group_id        = "${aws_security_group.tf-eks-node.id}"
+  source_security_group_id = "${aws_security_group.tf-eks-master.id}"
+  to_port                  = 65535
+  type                     = "ingress"
+}
+
+resource "aws_security_group_rule" "tf-eks-node-ingress-node-https" {
+  description              = "Allow pods to communicate with the cluster API Server"
+  from_port                = 443
+  protocol                 = "tcp"
+  security_group_id        = "${aws_security_group.tf-eks-master.id}"
+  source_security_group_id = "${aws_security_group.tf-eks-node.id}"
+  to_port                  = 443
+  type                     = "ingress"
 }
 
 resource "aws_iam_role" "example-cluster" {
