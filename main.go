@@ -42,11 +42,10 @@ var (
 	}
 )
 
-// assumes there is a table named UserData
+// assumes there is a table named UserData and a shared credentials file
 
 func main() {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
 		Config: aws.Config{
 			Region: aws.String("us-east-1"),
 		},
