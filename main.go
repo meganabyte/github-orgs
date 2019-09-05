@@ -5,6 +5,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/gorilla/mux"
 	"github.com/meganabyte/github-orgs/commits"
 	"github.com/meganabyte/github-orgs/issues"
@@ -20,6 +24,8 @@ type User struct {
 }
 
 type Data struct {
+	User string
+	Org string
 	Issues  map[string]int
 	Pulls   map[string]int
 	Commits map[string]int
@@ -28,13 +34,21 @@ type Data struct {
 var (
 	u User
 	d = Data{
+		User: "",
+		Org: "",
 		Issues:  make(map[string]int),
 		Pulls:   make(map[string]int),
 		Commits: make(map[string]int),
 	}
 )
 
+// assumes there is a table named UserData
+
 func main() {
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+	svc := dynamodb.New(sess)
 	router := mux.NewRouter()
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
@@ -60,25 +74,74 @@ func main() {
 		u.Org = r.FormValue("org")
 		u.Token = r.FormValue("token")
 		u.Login = r.FormValue("user")
+		d.User = u.Login
+		d.Org = u.Org
 
-		ctx, client := members.Authentication(u.Token)
-		repos, _ := repos.GetRepos(ctx, u.Org, client)
+		params := &dynamodb.GetItemInput{
+			TableName: aws.String("UserData"),
+			Key: map[string]*dynamodb.AttributeValue {
+				"User": {
+					S: aws.String(d.User),
+				},
+				"Org": {
+					S: aws.String(d.Org),
+				},
+			},
+		}
+		result, err := svc.GetItem(params)
+		if err != nil {
+			log.Println(err)
+			return
+		}
 
-		err = issues.GetIssuesCreated(ctx, u.Org, client, u.Login, repos, d.Issues)
-		if err != nil {
-			log.Println(err)
-			return
+		if len(result.Item) == 0 {
+
+			// compute user data
+			ctx, client := members.Authentication(u.Token)
+			repos, _ := repos.GetRepos(ctx, u.Org, client)
+			err = issues.GetIssuesCreated(ctx, u.Org, client, u.Login, repos, d.Issues)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			err = commits.GetUserCommits(ctx, u.Org, client, u.Login, repos, d.Commits)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			err = pulls.GetUserPulls(ctx, u.Org, client, u.Login, repos, d.Pulls)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			// creates item for entered user
+			av, err := dynamodbattribute.MarshalMap(d)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			input := &dynamodb.PutItemInput{
+				Item:      av,
+				TableName: aws.String("UserData"),
+			}
+			_, err = svc.PutItem(input)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+		} else {
+			item := Data{}
+			err = dynamodbattribute.UnmarshalMap(result.Item, &item)
+			if err != nil {
+				log.Println(err)
+			}
+			d.Commits = item.Commits
+			d.Issues = item.Issues
+			d.Pulls = item.Pulls
 		}
-		err = commits.GetUserCommits(ctx, u.Org, client, u.Login, repos, d.Commits)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		err = pulls.GetUserPulls(ctx, u.Org, client, u.Login, repos, d.Pulls)
-		if err != nil {
-			log.Println(err)
-			return
-		}
+
 		bar := commits.CommitsBase(d.Commits)
 		bar.Overlap(issues.IssuesBase(d.Issues), pulls.PullsBase(d.Pulls))
 		bar.Title = u.Login
