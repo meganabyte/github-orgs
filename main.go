@@ -15,6 +15,8 @@ import (
 	"github.com/meganabyte/github-orgs/members"
 	"github.com/meganabyte/github-orgs/pulls"
 	"github.com/meganabyte/github-orgs/repos"
+	"fmt"
+	"time"
 )
 
 type User struct {
@@ -42,9 +44,10 @@ var (
 	}
 )
 
-// assumes there is a table named UserData and a shared credentials file
+// assumes there is a DynamoDB table named UserData
 
 func main() {
+	var yearAgo = time.Now().AddDate(-1, 0, 0)
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
 			Region: aws.String("us-east-1"),
@@ -97,21 +100,20 @@ func main() {
 		}
 
 		if len(result.Item) == 0 {
-
 			// compute user data
 			ctx, client := members.Authentication(u.Token)
 			repos, _ := repos.GetRepos(ctx, u.Org, client)
-			err = issues.GetIssuesCreated(ctx, u.Org, client, u.Login, repos, d.Issues)
+			err = issues.GetIssuesCreated(ctx, u.Org, client, u.Login, repos, d.Issues, yearAgo)
 			if err != nil {
 				log.Println(err)
 				return
 			}
-			err = commits.GetUserCommits(ctx, u.Org, client, u.Login, repos, d.Commits)
+			err = commits.GetUserCommits(ctx, u.Org, client, u.Login, repos, d.Commits, yearAgo)
 			if err != nil {
 				log.Println(err)
 				return
 			}
-			err = pulls.GetUserPulls(ctx, u.Org, client, u.Login, repos, d.Pulls)
+			err = pulls.GetUserPulls(ctx, u.Org, client, u.Login, repos, d.Pulls, yearAgo)
 			if err != nil {
 				log.Println(err)
 				return
@@ -132,6 +134,7 @@ func main() {
 				log.Println(err)
 				return
 			}
+			fmt.Println(d.Commits, d.Pulls, d.Issues)
 
 		} else {
 			item := Data{}
@@ -142,6 +145,7 @@ func main() {
 			d.Commits = item.Commits
 			d.Issues = item.Issues
 			d.Pulls = item.Pulls
+			fmt.Println(d.Commits, d.Pulls, d.Issues)
 		}
 
 		bar := commits.CommitsBase(d.Commits)
