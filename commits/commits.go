@@ -5,16 +5,22 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/chenjiandongx/go-echarts/charts"
 	"sort"
+	"time"
 )
 
 func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string,
-					repos []*github.Repository, m map[string]int) (error) {
+					repos []*github.Repository, m map[string]int, yearAgo time.Time) (error) {
 	var list []*github.RepositoryCommit
 	for _, repo := range repos {
 		if repo.GetSize() != 0 {
 			repoName := repo.GetName()
 			repoOwner := repo.GetOwner().GetLogin()
-			opt := &github.CommitsListOptions{SHA: "master", Author: username, ListOptions: github.ListOptions{PerPage: 30}}
+			opt := &github.CommitsListOptions{
+				SHA: "master", 
+				Author: username, 
+				ListOptions: github.ListOptions{PerPage: 30},
+				Since: yearAgo,
+			}
 			for {
 				l, resp, err := client.Repositories.ListCommits(ctx, repoOwner, repoName, opt)
 				if err != nil {
