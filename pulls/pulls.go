@@ -39,7 +39,7 @@ func GetPullsTimes(list []*github.PullRequest, m map[string]int, username string
 	for _, pull := range list {
 		if pull.GetUser().GetLogin() == username {
 			time := pull.GetCreatedAt()
-			if !time.After(yearAgo) {
+			if !time.Before(yearAgo) {
 				mTime := time.Format("2006-01-02")
 				if val, ok := m[mTime]; !ok {
 					m[mTime] = 1
