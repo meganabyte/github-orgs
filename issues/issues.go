@@ -39,11 +39,13 @@ func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client
 		return err
 	}
 	for _, issue := range list {
-		time := issue.GetCreatedAt().Format("2006-01-02")
-		if val, ok := m[time]; !ok {
-			m[time] = 1
-		} else {
-			m[time] = val + 1
+		if !issue.IsPullRequest() {
+			time := issue.GetCreatedAt().Format("2006-01-02")
+			if val, ok := m[time]; !ok {
+				m[time] = 1
+			} else {
+				m[time] = val + 1
+			}
 		}
 	}
 	return nil
