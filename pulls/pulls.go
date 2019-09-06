@@ -5,15 +5,20 @@ import (
 	"sort"
 	"github.com/google/go-github/github"
 	"github.com/chenjiandongx/go-echarts/charts"
+	"time"
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
-				  repos []*github.Repository, m map[string]int) (error) {
+				  repos []*github.Repository, m map[string]int, yearAgo time.Time) (error) {
 	var list []*github.PullRequest
 	for _, repo := range repos {
 		repoName := repo.GetName()
 		repoOwner := repo.GetOwner().GetLogin()
-		opt := &github.PullRequestListOptions{State: "all", Base: "master", ListOptions: github.ListOptions{PerPage: 30}}
+		opt := &github.PullRequestListOptions{
+			State: "all", 
+			Base: "master",
+			ListOptions: github.ListOptions{PerPage: 30},
+		}
 		for {
 			l, resp, err := client.PullRequests.List(ctx, repoOwner, repoName, opt)
 			if err != nil {
@@ -26,18 +31,21 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 			opt.Page = resp.NextPage
 		}
 	}
-	GetPullsTimes(list, m, username)
+	GetPullsTimes(list, m, username, yearAgo)
 	return nil
 }
 
-func GetPullsTimes(list []*github.PullRequest, m map[string]int, username string) {
+func GetPullsTimes(list []*github.PullRequest, m map[string]int, username string, yearAgo time.Time) {
 	for _, pull := range list {
 		if pull.GetUser().GetLogin() == username {
-			time := pull.GetCreatedAt().Format("2006-01-02")
-			if val, ok := m[time]; !ok {
-				m[time] = 1
-			} else {
-				m[time] = val + 1
+			time := pull.GetCreatedAt()
+			if !time.After(yearAgo) {
+				mTime := time.Format("2006-01-02")
+				if val, ok := m[mTime]; !ok {
+					m[mTime] = 1
+				} else {
+					m[mTime] = val + 1
+				}
 			}
 		}
 	}
