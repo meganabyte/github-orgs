@@ -5,10 +5,11 @@ import (
 	"sort"
 	"github.com/google/go-github/github"
 	"github.com/chenjiandongx/go-echarts/charts"
+	"time"
 )
 
 func GetRepoIssues(ctx context.Context, client *github.Client, orgName string,
-				   repos []*github.Repository, username string ) ([]*github.Issue, error) {
+				   repos []*github.Repository, username string, yearAgo time.Time) ([]*github.Issue, error) {
 	var list []*github.Issue
 	for _, repo := range repos {
 		repoName := repo.GetName()
@@ -16,7 +17,9 @@ func GetRepoIssues(ctx context.Context, client *github.Client, orgName string,
 		opt := &github.IssueListByRepoOptions{
 			Creator: username,
 			State: "all",
-			ListOptions: github.ListOptions{PerPage: 30}}
+			Since: yearAgo,
+			ListOptions: github.ListOptions{PerPage: 30},
+		}
 		for {
 			l, resp, err := client.Issues.ListByRepo(ctx, repoOwner, repoName, opt)
 			if err != nil {
@@ -33,8 +36,8 @@ func GetRepoIssues(ctx context.Context, client *github.Client, orgName string,
 }
 
 func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client, username string, 
-					  repos []*github.Repository, m map[string]int) (error) {
-	list, err := GetRepoIssues(ctx, client, orgName, repos, username)
+					  repos []*github.Repository, m map[string]int, yearAgo time.Time) (error) {
+	list, err := GetRepoIssues(ctx, client, orgName, repos, username, yearAgo)
 	if err != nil {
 		return err
 	}
