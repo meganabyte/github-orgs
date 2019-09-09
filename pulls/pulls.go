@@ -43,8 +43,8 @@ func GetPullsTimes(pull *github.Issue, m map[string]int, username string, client
 	}
 	for _, review := range reviews {
 		if review.GetUser().GetLogin() == username {
+			fmt.Println(num)
 			time := pull.GetCreatedAt().Format("2006-01-02")
-			fmt.Println("Pull Review", review)
 			if val, ok := m[time]; !ok {
 				m[time] = 1
 			} else {
