@@ -1,73 +1,91 @@
-package repos
+package pulls
 
 import (
 	"context"
+	"sort"
 	"github.com/google/go-github/github"
-	"github.com/meganabyte/github-orgs/commits"
-	"github.com/meganabyte/github-orgs/issues"
-	"github.com/meganabyte/github-orgs/pulls"
-	"log"
+	"github.com/chenjiandongx/go-echarts/charts"
 	"time"
-	"fmt"
-	"sync"
 )
 
-func GetRepos(ctx context.Context, orgName string, client *github.Client) ([]*github.Repository, error) {
-	var list []*github.Repository
-	opt := &github.RepositoryListByOrgOptions{Type: "sources", ListOptions: github.ListOptions{PerPage: 30}}
+func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
+				  pM map[string]int, pR map[string]int, repoName string, repoOwner string) (error) {
+	var list []*github.Issue
+	opt := &github.IssueListByRepoOptions{
+		Creator: username,
+		State: "all",
+		Since: time.Now().AddDate(0, -1, 0),
+		ListOptions: github.ListOptions{PerPage: 30},
+	}
 	for {
-		repos, resp, err := client.Repositories.ListByOrg(ctx, orgName, opt)
+		l, resp, err := client.Issues.ListByRepo(ctx, repoOwner, repoName, opt)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		list = append(list, repos...)
+		list = append(list, l...)
 		if resp.NextPage == 0 {
 			break
 		}
 		opt.Page = resp.NextPage
 	}
-	return list, nil
+	GetReviewTimes(list, pR, username, client, ctx, repoOwner, repoName)
+	GetMergedTimes(list, pM, username, client, ctx, repoOwner, repoName)
+	return nil
 }
 
-func FetchContributions(repos []*github.Repository, ctx context.Context, orgName string, client *github.Client, username string,
-						i map[string]int, c map[string]int, p map[string]int, pM map[string]int, pR map[string]int, yearAgo time.Time) {
-	var wg sync.WaitGroup
-	var err error					
-	start := time.Now()
-	for _, repo := range repos {
-		if repo.GetSize() != 0 {
-			repoName := repo.GetName()
-			repoOwner := repo.GetOwner().GetLogin()
-			wg.Add(3)
-			wg.Wait()
-			go func() {
-				err = issues.GetIssuesCreated(ctx, orgName, client, username, i, p, yearAgo, repoName, repoOwner)
-				if err != nil {
-					log.Println(err)
-					wg.Done()
-					return
+func GetReviewTimes(list []*github.Issue, m map[string]int, username string, client *github.Client, ctx context.Context,
+				   repoOwner string, repoName string) {
+	for _, issue := range list {
+		num := issue.GetNumber()
+		reviews, _, err := client.PullRequests.ListReviews(ctx, repoOwner, repoName, num, nil)
+		if err != nil {
+			return 
+		}
+		for _, review := range reviews {
+			if review.GetUser().GetLogin() == username {
+				time := review.GetSubmittedAt().Format("2006-01-02")
+				if val, ok := m[time]; !ok {
+					m[time] = 1
+				} else {
+					m[time] = val + 1
 				}
-				wg.Done()
-			}()
-			go func() {
-				err = commits.GetUserCommits(ctx, orgName, client, username, c, yearAgo, repoName, repoOwner)
-				if err != nil {
-					log.Println(err)
-					wg.Done()
-					return
-				}
-				wg.Done()
-			}()
-			go func() {
-				err = pulls.GetUserPulls(ctx, orgName, client, username, pM, pR, repoName, repoOwner)
-				if err != nil {
-					log.Println(err)
-					wg.Done()
-					return
-				}
-				wg.Done()
-			}()
+			}
 		}
 	}
-	fmt.Println("Finished fetching cont after ", time.Since(start))
+}
+
+func GetMergedTimes(list []*github.Issue, m map[string]int, username string, client *github.Client, ctx context.Context,
+					repoOwner string, repoName string) {
+	for _, issue := range list {
+		num := issue.GetNumber()
+		pull, _, err := client.PullRequests.Get(ctx, repoOwner, repoName, num)
+		if err != nil {
+			return
+		}
+		if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
+			time := pull.GetMergedAt().Format("2006-01-02")
+			if val, ok := m[time]; !ok {
+				m[time] = 1
+			} else {
+				m[time] = val + 1
+			}
+		}
+	}
+}
+
+func PullsBase(m map[string]int) *charts.Bar {
+	var keys []string
+	nameItems := []string{}
+	countItems := []int{}
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		countItems = append(countItems, m[k])
+		nameItems = append(nameItems, k)
+	}
+	bar := charts.NewBar()
+	bar.AddXAxis(nameItems).AddYAxis("Pull Requests Opened", countItems)
+	return bar
 }
