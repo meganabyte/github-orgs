@@ -30,15 +30,16 @@ func GetRepos(ctx context.Context, orgName string, client *github.Client) ([]*gi
 }
 
 func FetchContributions(repos []*github.Repository, ctx context.Context, orgName string, client *github.Client, username string,
-						i map[string]int, c map[string]int, p map[string]int, yearAgo time.Time) {
-	var wg sync.WaitGroup					
+						i map[string]int, c map[string]int, p map[string]int, pM map[string]int, pR map[string]int, yearAgo time.Time) {
+	var wg sync.WaitGroup
+	var err error					
 	start := time.Now()
 	for _, repo := range repos {
 		if repo.GetSize() != 0 {
 			repoName := repo.GetName()
 			repoOwner := repo.GetOwner().GetLogin()
 			wg.Add(3)
-			var err error
+			wg.Wait()
 			go func() {
 				err = issues.GetIssuesCreated(ctx, orgName, client, username, i, p, yearAgo, repoName, repoOwner)
 				if err != nil {
@@ -58,7 +59,7 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 				wg.Done()
 			}()
 			go func() {
-				err = pulls.GetUserPulls(ctx, orgName, client, username, p, yearAgo, repoName, repoOwner)
+				err = pulls.GetUserPulls(ctx, orgName, client, username, pM, pR, repoName, repoOwner)
 				if err != nil {
 					log.Println(err)
 					wg.Done()
@@ -66,8 +67,6 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 				}
 				wg.Done()
 			}()
-			wg.Wait()
-			fmt.Println("Finished one repo")
 		}
 	}
 	fmt.Println("Finished fetching cont after ", time.Since(start))
