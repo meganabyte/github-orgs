@@ -6,6 +6,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/chenjiandongx/go-echarts/charts"
 	"time"
+	"fmt"
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
@@ -43,6 +44,7 @@ func GetPullsTimes(pull *github.Issue, m map[string]int, username string, client
 	for _, review := range reviews {
 		if review.GetUser().GetLogin() == username {
 			time := pull.GetCreatedAt().Format("2006-01-02")
+			fmt.Println("Pull Review", review)
 			if val, ok := m[time]; !ok {
 				m[time] = 1
 			} else {
