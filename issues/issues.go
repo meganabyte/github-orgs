@@ -6,6 +6,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/chenjiandongx/go-echarts/charts"
 	"time"
+	"fmt"
 )
 
 func GetRepoIssues(ctx context.Context, client *github.Client, orgName string,
@@ -37,6 +38,7 @@ func GetRepoIssues(ctx context.Context, client *github.Client, orgName string,
 
 func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client, username string, 
 					  repos []*github.Repository, m map[string]int, yearAgo time.Time) (error) {
+	start := time.Now()
 	list, err := GetRepoIssues(ctx, client, orgName, repos, username, yearAgo)
 	if err != nil {
 		return err
@@ -51,6 +53,7 @@ func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client
 			}
 		}
 	}
+	fmt.Println("Finished fetching issues after ", time.Since(start))
 	return nil
 }
 
