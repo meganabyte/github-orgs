@@ -6,7 +6,6 @@ import (
 	"github.com/chenjiandongx/go-echarts/charts"
 	"sort"
 	"time"
-	"fmt"
 )
 
 func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string,
