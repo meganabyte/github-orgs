@@ -7,10 +7,12 @@ import (
 	"github.com/chenjiandongx/go-echarts/charts"
 	"time"
 	"fmt"
+	"sync"
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
 				  m map[string]int, yearAgo time.Time, repoName string, repoOwner string) (error) {
+	var wg sync.WaitGroup
 	var list []*github.Issue
 	opt := &github.IssueListByRepoOptions{
 		Creator: username,
@@ -29,8 +31,16 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 		}
 		opt.Page = resp.NextPage
 	}
-	go GetReviewTimes(list, m, username, client, ctx, repoOwner, repoName)
-	go GetMergedTimes(list, m, username, client, ctx, repoOwner, repoName)
+	wg.Add(2)
+	wg.Wait()
+	go func() {
+		GetReviewTimes(list, m, username, client, ctx, repoOwner, repoName)
+		wg.Done()
+	}()
+	go func() {
+		GetMergedTimes(list, m, username, client, ctx, repoOwner, repoName)
+		wg.Done()
+	}()
 	return nil
 }
 
