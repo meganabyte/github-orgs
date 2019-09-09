@@ -10,31 +10,25 @@ import (
 )
 
 func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string,
-					repos []*github.Repository, m map[string]int, yearAgo time.Time) (error) {
+					m map[string]int, yearAgo time.Time, repoName string, repoOwner string) (error) {
 	start := time.Now()
 	var list []*github.RepositoryCommit
-	for _, repo := range repos {
-		if repo.GetSize() != 0 {
-			repoName := repo.GetName()
-			repoOwner := repo.GetOwner().GetLogin()
-			opt := &github.CommitsListOptions{
-				SHA: "master", 
-				Author: username, 
-				ListOptions: github.ListOptions{PerPage: 30},
-				Since: yearAgo,
-			}
-			for {
-				l, resp, err := client.Repositories.ListCommits(ctx, repoOwner, repoName, opt)
-				if err != nil {
-					return err
-				}
-				list = append(list, l...)
-				if resp.NextPage == 0 {
-					break
-				}
-				opt.Page = resp.NextPage
-			}
+	opt := &github.CommitsListOptions{
+		SHA: "master", 
+		Author: username, 
+		ListOptions: github.ListOptions{PerPage: 30},
+		Since: yearAgo,
+	}
+	for {
+		l, resp, err := client.Repositories.ListCommits(ctx, repoOwner, repoName, opt)
+		if err != nil {
+			return err
 		}
+		list = append(list, l...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
 	}
 	getCommitTimes(list, m)
 	fmt.Println("Finished fetching commits after ", time.Since(start))
