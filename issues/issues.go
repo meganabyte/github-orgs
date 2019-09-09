@@ -54,7 +54,7 @@ func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client
 					p[time] = val + 1
 				}
 			}
-			pulls.GetPullsTimes(issue, p, username, client, ctx, repoOwner, repoName)
+			pulls.GetReviewTimes(issue, p, username, client, ctx, repoOwner, repoName)
 			pulls.GetMergedTimes(issue, p, username, client, ctx, repoOwner, repoName)
 		}
 	}
