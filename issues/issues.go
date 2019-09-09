@@ -6,7 +6,6 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/chenjiandongx/go-echarts/charts"
 	"time"
-	"fmt"
 )
 
 func GetRepoIssues(ctx context.Context, client *github.Client, orgName string, repoName string, 
@@ -32,24 +31,28 @@ func GetRepoIssues(ctx context.Context, client *github.Client, orgName string, r
 	return list, nil
 }
 
-func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client, username string, 
-					  m map[string]int, yearAgo time.Time, repoName string, repoOwner string) (error) {
-	start := time.Now()
+func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client, username string, i map[string]int,
+					   p map[string]int, yearAgo time.Time, repoName string, repoOwner string) (error) {
 	list, err := GetRepoIssues(ctx, client, orgName, repoName, repoOwner, username, yearAgo)
 	if err != nil {
 		return err
 	}
 	for _, issue := range list {
+		time := issue.GetCreatedAt().Format("2006-01-02")
 		if !issue.IsPullRequest() {
-			time := issue.GetCreatedAt().Format("2006-01-02")
-			if val, ok := m[time]; !ok {
-				m[time] = 1
+			if val, ok := i[time]; !ok {
+				i[time] = 1
 			} else {
-				m[time] = val + 1
+				i[time] = val + 1
+			}
+		} else if issue.IsPullRequest() && issue.GetUser().GetLogin() == username {
+			if val, ok := p[time]; !ok {
+				p[time] = 1
+			} else {
+				p[time] = val + 1
 			}
 		}
 	}
-	fmt.Println("Finished fetching issues after ", time.Since(start))
 	return nil
 }
 
