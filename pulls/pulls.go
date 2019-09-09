@@ -9,36 +9,33 @@ import (
 	"fmt"
 )
 
-func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
-				  repos []*github.Repository, m map[string]int, yearAgo time.Time) (error) {
+func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string, repoName string, 
+				  yearAgo time.Time, repoName string, repoOwner string) (error) {
 	start := time.Now()
 	var list []*github.PullRequest
-	for _, repo := range repos {
-		repoName := repo.GetName()
-		repoOwner := repo.GetOwner().GetLogin()
-		opt := &github.PullRequestListOptions{
-			State: "all", 
-			Base: "master",
-			ListOptions: github.ListOptions{PerPage: 30},
-		}
-		for {
-			l, resp, err := client.PullRequests.List(ctx, repoOwner, repoName, opt)
-			if err != nil {
-				return err
-			}
-			list = append(list, l...)
-			if resp.NextPage == 0 {
-				break
-			}
-			opt.Page = resp.NextPage
-		}
+	opt := &github.PullRequestListOptions{
+		State: "all", 
+		Base: "master",
+		ListOptions: github.ListOptions{PerPage: 30},
 	}
-	GetPullsTimes(list, m, username, yearAgo)
+	for {
+		l, resp, err := client.PullRequests.List(ctx, repoOwner, repoName, opt)
+		if err != nil {
+			return err
+		}
+		list = append(list, l...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
 	fmt.Println("Finished fetching pulls after ", time.Since(start))
+	GetPullsTimes(list, m, username, yearAgo)
 	return nil
 }
 
 func GetPullsTimes(list []*github.PullRequest, m map[string]int, username string, yearAgo time.Time) {
+	start := time.Now()
 	for _, pull := range list {
 		if pull.GetUser().GetLogin() == username {
 			time := pull.GetCreatedAt()
@@ -52,6 +49,7 @@ func GetPullsTimes(list []*github.PullRequest, m map[string]int, username string
 			}
 		}
 	}
+	fmt.Println("Finished processing pulls after ", time.Since(start))
 }
 
 func PullsBase(m map[string]int) *charts.Bar {
