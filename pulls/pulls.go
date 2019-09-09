@@ -9,7 +9,7 @@ import (
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
-				  repoName string, repoOwner string) (error) {
+				  pM map[string]int, pR map[string]int, repoName string, repoOwner string) (error) {
 	var list []*github.Issue
 	opt := &github.IssueListByRepoOptions{
 		Creator: username,
@@ -28,12 +28,12 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 		}
 		opt.Page = resp.NextPage
 	}
-	GetReviewTimes(list, username, client, ctx, repoOwner, repoName)
-	GetMergedTimes(list, username, client, ctx, repoOwner, repoName)
+	GetReviewTimes(list, username, pR, client, ctx, repoOwner, repoName)
+	GetMergedTimes(list, username, pM, client, ctx, repoOwner, repoName)
 	return nil
 }
 
-func GetReviewTimes(list []*github.Issue, username string, client *github.Client, ctx context.Context,
+func GetReviewTimes(list []*github.Issue, username string, m map[string]int, client *github.Client, ctx context.Context,
 				   repoOwner string, repoName string) {
 	for _, issue := range list {
 		num := issue.GetNumber()
@@ -43,20 +43,18 @@ func GetReviewTimes(list []*github.Issue, username string, client *github.Client
 		}
 		for _, review := range reviews {
 			if review.GetUser().GetLogin() == username {
-				/*
 				time := review.GetSubmittedAt().Format("2006-01-02")
 				if val, ok := m[time]; !ok {
 					m[time] = 1
 				} else {
 					m[time] = val + 1
 				}
-				*/
 			}
 		}
 	}
 }
 
-func GetMergedTimes(list []*github.Issue, username string, client *github.Client, ctx context.Context,
+func GetMergedTimes(list []*github.Issue, username string, m map[string]int, client *github.Client, ctx context.Context,
 					repoOwner string, repoName string) {
 	for _, issue := range list {
 		num := issue.GetNumber()
@@ -65,14 +63,12 @@ func GetMergedTimes(list []*github.Issue, username string, client *github.Client
 			return
 		}
 		if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
-			/*
 			time := pull.GetMergedAt().Format("2006-01-02")
 			if val, ok := m[time]; !ok {
 				m[time] = 1
 			} else {
 				m[time] = val + 1
 			}
-			*/
 		}
 	}
 }
