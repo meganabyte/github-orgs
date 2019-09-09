@@ -6,6 +6,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/chenjiandongx/go-echarts/charts"
 	"time"
+	"fmt"
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
@@ -35,6 +36,7 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 
 func getReviewTimes(list []*github.Issue, username string, m map[string]int, client *github.Client, ctx context.Context,
 				   repoOwner string, repoName string) {
+	fmt.Println("getReviewTimes is running...")
 	for _, issue := range list {
 		if issue.IsPullRequest() {
 			num := issue.GetNumber()
@@ -45,6 +47,7 @@ func getReviewTimes(list []*github.Issue, username string, m map[string]int, cli
 			for _, review := range reviews {
 				if review.GetUser().GetLogin() == username {
 					time := review.GetSubmittedAt().Format("2006-01-02")
+					fmt.Println(num, repoName, time)
 					if val, ok := m[time]; !ok {
 						m[time] = 1
 					} else {
@@ -58,6 +61,7 @@ func getReviewTimes(list []*github.Issue, username string, m map[string]int, cli
 
 func getMergedTimes(list []*github.Issue, username string, m map[string]int, client *github.Client, ctx context.Context,
 					repoOwner string, repoName string) {
+	fmt.Println("getMergedTimes is running...")
 	for _, issue := range list {
 		if issue.IsPullRequest() {
 			num := issue.GetNumber()
@@ -67,6 +71,7 @@ func getMergedTimes(list []*github.Issue, username string, m map[string]int, cli
 			}
 			if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
 				time := pull.GetMergedAt().Format("2006-01-02")
+				fmt.Println(num, repoName, )
 				if val, ok := m[time]; !ok {
 					m[time] = 1
 				} else {
