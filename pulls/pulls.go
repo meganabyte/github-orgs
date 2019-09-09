@@ -42,7 +42,12 @@ func GetPullsTimes(pull *github.Issue, m map[string]int, username string, client
 	}
 	for _, review := range reviews {
 		if review.GetUser().GetLogin() == username {
-
+			time := pull.GetCreatedAt().Format("2006-01-02")
+			if val, ok := m[time]; !ok {
+				m[time] = 1
+			} else {
+				m[time] = val + 1
+			}
 		}
 	}
 }
