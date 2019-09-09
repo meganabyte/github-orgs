@@ -29,8 +29,8 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 		}
 		opt.Page = resp.NextPage
 	}
-	GetReviewTimes(list, m, username, client, ctx, repoOwner, repoName)
-	GetMergedTimes(list, m, username, client, ctx, repoOwner, repoName)
+	go GetReviewTimes(list, m, username, client, ctx, repoOwner, repoName)
+	go GetMergedTimes(list, m, username, client, ctx, repoOwner, repoName)
 	return nil
 }
 
