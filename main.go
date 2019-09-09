@@ -124,7 +124,7 @@ func main() {
 				log.Println(err)
 				return
 			}
-			fmt.Println(d.Commits, d.Pulls, d.Issues)
+			fmt.Println(d.Commits, d.Pulls, d.Issues, d.PullsMerged, d.PullsReviewed)
 		} else {
 			item := Data{}
 			err = dynamodbattribute.UnmarshalMap(result.Item, &item)
@@ -134,7 +134,7 @@ func main() {
 			d.Commits = item.Commits
 			d.Issues = item.Issues
 			d.Pulls = item.Pulls
-			fmt.Println(d.Commits, d.Pulls, d.Issues, d.PullsMerged, d.PullsReviewed)
+			fmt.Println(d.Commits, d.Pulls, d.Issues)
 		}
 
 		bar := commits.CommitsBase(d.Commits)
