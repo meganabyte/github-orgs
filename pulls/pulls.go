@@ -44,8 +44,8 @@ func getReviewTimes(list []*github.Issue, username string, m map[string]int, cli
 				return 
 			}
 			for _, review := range reviews {
-				fmt.Println("getReviewTimes is running...")
 				if review.GetUser().GetLogin() == username {
+					fmt.Println("getReviewTimes is running...")
 					time := review.GetSubmittedAt().Format("2006-01-02")
 					fmt.Println(num, repoName, time)
 					if val, ok := m[time]; !ok {
