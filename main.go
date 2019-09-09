@@ -102,8 +102,8 @@ func main() {
 		if len(result.Item) == 0 {
 			// compute user data
 			ctx, client := members.Authentication(u.Token)
-			repos, _ := repos.GetRepos(ctx, u.Org, client)
-			repos.FetchContributions(repos, ctx, u.Org, client, u.Login, d.Issues, d.Commits, d.Pulls, yearAgo)
+			list, _ := repos.GetRepos(ctx, u.Org, client)
+			repos.FetchContributions(list, ctx, u.Org, client, u.Login, d.Issues, d.Commits, d.Pulls, yearAgo)
 
 			// creates item for entered user
 			av, err := dynamodbattribute.MarshalMap(d)
