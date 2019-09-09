@@ -47,7 +47,7 @@ var (
 // assumes there is a DynamoDB table named UserData
 
 func main() {
-	var yearAgo = time.Now().AddDate(-1, 0, 0)
+	var yearAgo = time.Now().AddDate(-2, 0, 0)
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
 			Region: aws.String("us-east-1"),
@@ -103,21 +103,7 @@ func main() {
 			// compute user data
 			ctx, client := members.Authentication(u.Token)
 			repos, _ := repos.GetRepos(ctx, u.Org, client)
-			err = issues.GetIssuesCreated(ctx, u.Org, client, u.Login, repos, d.Issues, yearAgo)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-			err = commits.GetUserCommits(ctx, u.Org, client, u.Login, repos, d.Commits, yearAgo)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-			err = pulls.GetUserPulls(ctx, u.Org, client, u.Login, repos, d.Pulls, yearAgo)
-			if err != nil {
-				log.Println(err)
-				return
-			}
+			repos.FetchContributions(repos, ctx, u.Org, client, u.Login, d.Issues, d.Commits, d.Pulls, yearAgo)
 
 			// creates item for entered user
 			av, err := dynamodbattribute.MarshalMap(d)
