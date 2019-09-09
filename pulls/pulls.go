@@ -43,12 +43,14 @@ func GetReviewTimes(list []*github.Issue, m map[string]int, username string, cli
 		}
 		for _, review := range reviews {
 			if review.GetUser().GetLogin() == username {
+				/*
 				time := review.GetSubmittedAt().Format("2006-01-02")
 				if val, ok := m[time]; !ok {
 					m[time] = 1
 				} else {
 					m[time] = val + 1
 				}
+				*/
 			}
 		}
 	}
@@ -63,12 +65,14 @@ func GetMergedTimes(list []*github.Issue, m map[string]int, username string, cli
 			return
 		}
 		if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
+			/*
 			time := pull.GetMergedAt().Format("2006-01-02")
 			if val, ok := m[time]; !ok {
 				m[time] = 1
 			} else {
 				m[time] = val + 1
 			}
+			*/
 		}
 	}
 }
