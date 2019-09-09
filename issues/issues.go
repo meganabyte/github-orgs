@@ -5,7 +5,6 @@ import (
 	"sort"
 	"github.com/google/go-github/github"
 	"github.com/chenjiandongx/go-echarts/charts"
-	"github.com/meganabyte/github-orgs/pulls"
 	"time"
 )
 
