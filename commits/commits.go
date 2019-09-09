@@ -6,10 +6,12 @@ import (
 	"github.com/chenjiandongx/go-echarts/charts"
 	"sort"
 	"time"
+	"fmt"
 )
 
 func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string,
 					repos []*github.Repository, m map[string]int, yearAgo time.Time) (error) {
+	start := time.Now()
 	var list []*github.RepositoryCommit
 	for _, repo := range repos {
 		if repo.GetSize() != 0 {
@@ -35,6 +37,7 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 		}
 	}
 	getCommitTimes(list, m)
+	fmt.Println("Finished fetching commits after ", time.Since(start))
 	return nil
 }
 
