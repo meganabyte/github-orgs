@@ -11,7 +11,6 @@ import (
 
 func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string,
 					m map[string]int, yearAgo time.Time, repoName string, repoOwner string) (error) {
-	start := time.Now()
 	var list []*github.RepositoryCommit
 	opt := &github.CommitsListOptions{
 		SHA: "master", 
@@ -31,7 +30,6 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 		opt.Page = resp.NextPage
 	}
 	getCommitTimes(list, m)
-	fmt.Println("Finished fetching commits after ", time.Since(start))
 	return nil
 }
 
