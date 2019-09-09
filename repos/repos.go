@@ -53,5 +53,5 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 			}
 		}
 	}
-	fmt.Println("Finished fetching pulls after ", time.Since(start))
+	fmt.Println("Finished fetching cont after ", time.Since(start))
 }
