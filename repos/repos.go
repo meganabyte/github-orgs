@@ -38,12 +38,14 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 			repoName := repo.GetName()
 			repoOwner := repo.GetOwner().GetLogin()
 			wg.Add(3)
+			wg.Wait()
 			go func() {
 				err := issues.GetIssuesCreated(ctx, orgName, client, username, i, p, yearAgo, repoName, repoOwner)
 				if err != nil {
 					log.Println(err)
 					return
 				}
+				wg.Done()
 			}()
 			go func() {
 				err := commits.GetUserCommits(ctx, orgName, client, username, c, yearAgo, repoName, repoOwner)
@@ -51,6 +53,7 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 					log.Println(err)
 					return
 				}
+				wg.Done()
 			}()
 			go func() {
 				err := pulls.GetUserPulls(ctx, orgName, client, username, p, yearAgo, repoName, repoOwner)
@@ -58,8 +61,8 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 					log.Println(err)
 					return
 				}
+				wg.Done()
 			}()
-			wg.Wait()
 		}
 	}
 	fmt.Println("Finished fetching cont after ", time.Since(start))
