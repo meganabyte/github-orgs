@@ -9,37 +9,33 @@ import (
 	"fmt"
 )
 
-func GetRepoIssues(ctx context.Context, client *github.Client, orgName string,
-				   repos []*github.Repository, username string, yearAgo time.Time) ([]*github.Issue, error) {
+func GetRepoIssues(ctx context.Context, client *github.Client, orgName string, repoName string, 
+					repoOwner string, username string, yearAgo time.Time) ([]*github.Issue, error) {
 	var list []*github.Issue
-	for _, repo := range repos {
-		repoName := repo.GetName()
-		repoOwner := repo.GetOwner().GetLogin()
-		opt := &github.IssueListByRepoOptions{
-			Creator: username,
-			State: "all",
-			Since: yearAgo,
-			ListOptions: github.ListOptions{PerPage: 30},
+	opt := &github.IssueListByRepoOptions{
+		Creator: username,
+		State: "all",
+		Since: yearAgo,
+		ListOptions: github.ListOptions{PerPage: 30},
+	}
+	for {
+		l, resp, err := client.Issues.ListByRepo(ctx, repoOwner, repoName, opt)
+		if err != nil {
+			return nil, err
 		}
-		for {
-			l, resp, err := client.Issues.ListByRepo(ctx, repoOwner, repoName, opt)
-			if err != nil {
-				return nil, err
-			}
-			list = append(list, l...)
-			if resp.NextPage == 0 {
-				break
-			}
-			opt.Page = resp.NextPage
+		list = append(list, l...)
+		if resp.NextPage == 0 {
+			break
 		}
+		opt.Page = resp.NextPage
 	}
 	return list, nil
 }
 
 func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client, username string, 
-					  repos []*github.Repository, m map[string]int, yearAgo time.Time) (error) {
+					  m map[string]int, yearAgo time.Time, repoName string, repoOwner string) (error) {
 	start := time.Now()
-	list, err := GetRepoIssues(ctx, client, orgName, repos, username, yearAgo)
+	list, err := GetRepoIssues(ctx, client, orgName, repoName, repoOwner, username, yearAgo)
 	if err != nil {
 		return err
 	}
