@@ -28,46 +28,50 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 		}
 		opt.Page = resp.NextPage
 	}
-	GetReviewTimes(list, username, pR, client, ctx, repoOwner, repoName)
-	GetMergedTimes(list, username, pM, client, ctx, repoOwner, repoName)
+	getReviewTimes(list, username, pR, client, ctx, repoOwner, repoName)
+	getMergedTimes(list, username, pM, client, ctx, repoOwner, repoName)
 	return nil
 }
 
-func GetReviewTimes(list []*github.Issue, username string, m map[string]int, client *github.Client, ctx context.Context,
+func getReviewTimes(list []*github.Issue, username string, m map[string]int, client *github.Client, ctx context.Context,
 				   repoOwner string, repoName string) {
 	for _, issue := range list {
-		num := issue.GetNumber()
-		reviews, _, err := client.PullRequests.ListReviews(ctx, repoOwner, repoName, num, nil)
-		if err != nil {
-			return 
-		}
-		for _, review := range reviews {
-			if review.GetUser().GetLogin() == username {
-				time := review.GetSubmittedAt().Format("2006-01-02")
-				if val, ok := m[time]; !ok {
-					m[time] = 1
-				} else {
-					m[time] = val + 1
+		if issue.IsPullRequest() {
+			num := issue.GetNumber()
+			reviews, _, err := client.PullRequests.ListReviews(ctx, repoOwner, repoName, num, nil)
+			if err != nil {
+				return 
+			}
+			for _, review := range reviews {
+				if review.GetUser().GetLogin() == username {
+					time := review.GetSubmittedAt().Format("2006-01-02")
+					if val, ok := m[time]; !ok {
+						m[time] = 1
+					} else {
+						m[time] = val + 1
+					}
 				}
 			}
 		}
 	}
 }
 
-func GetMergedTimes(list []*github.Issue, username string, m map[string]int, client *github.Client, ctx context.Context,
+func getMergedTimes(list []*github.Issue, username string, m map[string]int, client *github.Client, ctx context.Context,
 					repoOwner string, repoName string) {
 	for _, issue := range list {
-		num := issue.GetNumber()
-		pull, _, err := client.PullRequests.Get(ctx, repoOwner, repoName, num)
-		if err != nil {
-			return
-		}
-		if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
-			time := pull.GetMergedAt().Format("2006-01-02")
-			if val, ok := m[time]; !ok {
-				m[time] = 1
-			} else {
-				m[time] = val + 1
+		if issue.IsPullRequest() {
+			num := issue.GetNumber()
+			pull, _, err := client.PullRequests.Get(ctx, repoOwner, repoName, num)
+			if err != nil {
+				return
+			}
+			if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
+				time := pull.GetMergedAt().Format("2006-01-02")
+				if val, ok := m[time]; !ok {
+					m[time] = 1
+				} else {
+					m[time] = val + 1
+				}
 			}
 		}
 	}
