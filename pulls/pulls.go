@@ -9,7 +9,7 @@ import (
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
-				  pM map[string]int, pR map[string]int, repoName string, repoOwner string) (error) {
+				  repoName string, repoOwner string) (error) {
 	var list []*github.Issue
 	opt := &github.IssueListByRepoOptions{
 		Creator: username,
@@ -28,12 +28,12 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 		}
 		opt.Page = resp.NextPage
 	}
-	GetReviewTimes(list, pR, username, client, ctx, repoOwner, repoName)
-	GetMergedTimes(list, pM, username, client, ctx, repoOwner, repoName)
+	GetReviewTimes(list, username, client, ctx, repoOwner, repoName)
+	GetMergedTimes(list, username, client, ctx, repoOwner, repoName)
 	return nil
 }
 
-func GetReviewTimes(list []*github.Issue, m map[string]int, username string, client *github.Client, ctx context.Context,
+func GetReviewTimes(list []*github.Issue, username string, client *github.Client, ctx context.Context,
 				   repoOwner string, repoName string) {
 	for _, issue := range list {
 		num := issue.GetNumber()
@@ -56,7 +56,7 @@ func GetReviewTimes(list []*github.Issue, m map[string]int, username string, cli
 	}
 }
 
-func GetMergedTimes(list []*github.Issue, m map[string]int, username string, client *github.Client, ctx context.Context,
+func GetMergedTimes(list []*github.Issue, username string, client *github.Client, ctx context.Context,
 					repoOwner string, repoName string) {
 	for _, issue := range list {
 		num := issue.GetNumber()
