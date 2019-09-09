@@ -46,11 +46,13 @@ func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client
 			} else {
 				i[time] = val + 1
 			}
-		} else if issue.IsPullRequest() && issue.GetUser().GetLogin() == username {
-			if val, ok := p[time]; !ok {
-				p[time] = 1
-			} else {
-				p[time] = val + 1
+		} else {
+			if issue.GetUser().GetLogin() == username {
+				if val, ok := p[time]; !ok {
+					p[time] = 1
+				} else {
+					p[time] = val + 1
+				}
 			}
 			pulls.GetPullsTimes(issue, p, username, client, ctx, repoOwner, repoName)
 		}
