@@ -9,8 +9,8 @@ import (
 	"fmt"
 )
 
-func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string, repoName string, 
-				  yearAgo time.Time, repoName string, repoOwner string) (error) {
+func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
+				  m map[string]int, yearAgo time.Time, repoName string, repoOwner string) (error) {
 	start := time.Now()
 	var list []*github.PullRequest
 	opt := &github.PullRequestListOptions{
