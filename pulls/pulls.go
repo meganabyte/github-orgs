@@ -10,7 +10,7 @@ import (
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
-				  m map[string]int, yearAgo time.Time, repoName string, repoOwner string) {
+				  m map[string]int, yearAgo time.Time, repoName string, repoOwner string) (error) {
 	var list []*github.Issue
 	opt := &github.IssueListByRepoOptions{
 		Creator: username,
@@ -21,7 +21,7 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 	for {
 		l, resp, err := client.Issues.ListByRepo(ctx, repoOwner, repoName, opt)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		list = append(list, l...)
 		if resp.NextPage == 0 {
@@ -31,6 +31,7 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 	}
 	GetReviewTimes(list, m, username, client, ctx, repoOwner, repoName)
 	GetMergedTimes(list, m, username, client, ctx, repoOwner, repoName)
+	return nil
 }
 
 func GetReviewTimes(list []*github.Issue, m map[string]int, username string, client *github.Client, ctx context.Context,
