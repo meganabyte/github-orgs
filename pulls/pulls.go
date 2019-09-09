@@ -33,20 +33,18 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 	return nil
 }
 
-func GetPullsTimes(list []*github.PullRequest, m map[string]int, username string, yearAgo time.Time) {
-	/*
-	for _, pull := range list {
-		time := pull.GetCreatedAt()
-		if pull.GetUser().GetLogin() == username && !time.Before(yearAgo) {
-			mTime := time.Format("2006-01-02")
-			if val, ok := m[mTime]; !ok {
-				m[mTime] = 1
-			} else {
-				m[mTime] = val + 1
-			}
+func GetPullsTimes(pull *github.Issue, m map[string]int, username string, client *github.Client, ctx context.Context,
+				   repoOwner string, repoName string) {
+	num := pull.GetNumber()
+	reviews, _, err := client.PullRequests.ListReviews(ctx, repoOwner, repoName, num, nil)
+	if err != nil {
+		return 
+	}
+	for _, review := range reviews {
+		if review.GetUser().GetLogin() == username {
+
 		}
 	}
-	*/
 }
 
 func PullsBase(m map[string]int) *charts.Bar {
