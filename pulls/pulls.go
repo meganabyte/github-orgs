@@ -43,8 +43,8 @@ func getReviewTimes(list []*github.Issue, username string, m map[string]int, cli
 			if err != nil {
 				return 
 			}
-			fmt.Println("getReviewTimes is running...")
 			for _, review := range reviews {
+				fmt.Println("getReviewTimes is running...")
 				if review.GetUser().GetLogin() == username {
 					time := review.GetSubmittedAt().Format("2006-01-02")
 					fmt.Println(num, repoName, time)
@@ -68,8 +68,8 @@ func getMergedTimes(list []*github.Issue, username string, m map[string]int, cli
 			if err != nil {
 				return
 			}
-			fmt.Println("getMergedTimes is running...")
 			if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
+				fmt.Println("getMergedTimes is running...")
 				time := pull.GetMergedAt().Format("2006-01-02")
 				fmt.Println(num, repoName, )
 				if val, ok := m[time]; !ok {
