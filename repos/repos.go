@@ -63,6 +63,7 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 				}
 				wg.Done()
 			}()
+			fmt.Println("Finished one repo")
 		}
 	}
 	fmt.Println("Finished fetching cont after ", time.Since(start))
