@@ -38,31 +38,35 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 			repoName := repo.GetName()
 			repoOwner := repo.GetOwner().GetLogin()
 			wg.Add(3)
+			var err error
+			go func() {
+				err = issues.GetIssuesCreated(ctx, orgName, client, username, i, p, yearAgo, repoName, repoOwner)
+				if err != nil {
+					log.Println(err)
+					wg.Done()
+					return
+				}
+				wg.Done()
+			}()
+			go func() {
+				err = commits.GetUserCommits(ctx, orgName, client, username, c, yearAgo, repoName, repoOwner)
+				if err != nil {
+					log.Println(err)
+					wg.Done()
+					return
+				}
+				wg.Done()
+			}()
+			go func() {
+				err = pulls.GetUserPulls(ctx, orgName, client, username, p, yearAgo, repoName, repoOwner)
+				if err != nil {
+					log.Println(err)
+					wg.Done()
+					return
+				}
+				wg.Done()
+			}()
 			wg.Wait()
-			go func() {
-				err := issues.GetIssuesCreated(ctx, orgName, client, username, i, p, yearAgo, repoName, repoOwner)
-				if err != nil {
-					log.Println(err)
-					return
-				}
-				wg.Done()
-			}()
-			go func() {
-				err := commits.GetUserCommits(ctx, orgName, client, username, c, yearAgo, repoName, repoOwner)
-				if err != nil {
-					log.Println(err)
-					return
-				}
-				wg.Done()
-			}()
-			go func() {
-				err := pulls.GetUserPulls(ctx, orgName, client, username, p, yearAgo, repoName, repoOwner)
-				if err != nil {
-					log.Println(err)
-					return
-				}
-				wg.Done()
-			}()
 			fmt.Println("Finished one repo")
 		}
 	}
