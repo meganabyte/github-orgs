@@ -29,55 +29,48 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 		}
 		opt.Page = resp.NextPage
 	}
-	getReviewTimes(list, username, pR, client, ctx, repoOwner, repoName)
-	getMergedTimes(list, username, pM, client, ctx, repoOwner, repoName)
-	return nil
-}
-
-func getReviewTimes(list []*github.Issue, username string, m map[string]int, client *github.Client, ctx context.Context,
-				   repoOwner string, repoName string) {
 	for _, issue := range list {
 		if issue.IsPullRequest() {
 			num := issue.GetNumber()
-			reviews, _, err := client.PullRequests.ListReviews(ctx, repoOwner, repoName, num, nil)
-			if err != nil {
-				return 
-			}
-			for _, review := range reviews {
-				if review.GetUser().GetLogin() == username {
-					fmt.Println("getReviewTimes is running...")
-					time := review.GetSubmittedAt().Format("2006-01-02")
-					fmt.Println(num, repoName, time)
-					if val, ok := m[time]; !ok {
-						m[time] = 1
-					} else {
-						m[time] = val + 1
-					}
-				}
+			getReviewTimes(num, username, pR, client, ctx, repoOwner, repoName)
+			getMergedTimes(num, username, pM, client, ctx, repoOwner, repoName)
+		}
+	}
+	return nil
+}
+
+func getReviewTimes(num int, username string, m map[string]int, client *github.Client, ctx context.Context,
+				   repoOwner string, repoName string) {
+	reviews, _, err := client.PullRequests.ListReviews(ctx, repoOwner, repoName, num, nil)
+	if err != nil {
+		return 
+	}
+	for _, review := range reviews {
+		if review.GetUser().GetLogin() == username {
+			time := review.GetSubmittedAt().Format("2006-01-02")
+			fmt.Println("PR #", num, "reviewed at", time)
+			if val, ok := m[time]; !ok {
+				m[time] = 1
+			} else {
+				m[time] = val + 1
 			}
 		}
 	}
 }
 
-func getMergedTimes(list []*github.Issue, username string, m map[string]int, client *github.Client, ctx context.Context,
+func getMergedTimes(num int, username string, m map[string]int, client *github.Client, ctx context.Context,
 					repoOwner string, repoName string) {
-	for _, issue := range list {
-		if issue.IsPullRequest() {
-			num := issue.GetNumber()
-			pull, _, err := client.PullRequests.Get(ctx, repoOwner, repoName, num)
-			if err != nil {
-				return
-			}
-			if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
-				fmt.Println("getMergedTimes is running...")
-				time := pull.GetMergedAt().Format("2006-01-02")
-				fmt.Println(num, repoName, )
-				if val, ok := m[time]; !ok {
-					m[time] = 1
-				} else {
-					m[time] = val + 1
-				}
-			}
+	pull, _, err := client.PullRequests.Get(ctx, repoOwner, repoName, num)
+	if err != nil {
+		return
+	}
+	if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
+		time := pull.GetMergedAt().Format("2006-01-02")
+		fmt.Println("PR #", num, "merged at", time)
+		if val, ok := m[time]; !ok {
+			m[time] = 1
+		} else {
+			m[time] = val + 1
 		}
 	}
 }
