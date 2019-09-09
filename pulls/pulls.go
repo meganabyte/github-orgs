@@ -6,10 +6,12 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/chenjiandongx/go-echarts/charts"
 	"time"
+	"fmt"
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
 				  repos []*github.Repository, m map[string]int, yearAgo time.Time) (error) {
+	start := time.Now()
 	var list []*github.PullRequest
 	for _, repo := range repos {
 		repoName := repo.GetName()
@@ -32,6 +34,7 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 		}
 	}
 	GetPullsTimes(list, m, username, yearAgo)
+	fmt.Println("Finished fetching pulls after ", time.Since(start))
 	return nil
 }
 
