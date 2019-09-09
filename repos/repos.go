@@ -59,7 +59,7 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 				wg.Done()
 			}()
 			go func() {
-				err = pulls.GetUserPulls(ctx, orgName, client, username, pM, pR, repoName, repoOwner)
+				err = pulls.GetUserPulls(ctx, orgName, client, username, repoName, repoOwner)
 				if err != nil {
 					log.Println(err)
 					wg.Done()
