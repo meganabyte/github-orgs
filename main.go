@@ -30,8 +30,6 @@ type Data struct {
 	Org string
 	Issues  map[string]int
 	Pulls   map[string]int
-	PullsMerged map[string]int
-	PullsReviewed map[string]int
 	Commits map[string]int
 }
 
@@ -42,8 +40,6 @@ var (
 		Org: "",
 		Issues:  make(map[string]int),
 		Pulls:   make(map[string]int),
-		PullsMerged:   make(map[string]int),
-		PullsReviewed:   make(map[string]int),
 		Commits: make(map[string]int),
 	}
 )
@@ -107,7 +103,7 @@ func main() {
 			// compute user data
 			ctx, client := members.Authentication(u.Token)
 			list, _ := repos.GetRepos(ctx, u.Org, client)
-			repos.FetchContributions(list, ctx, u.Org, client, u.Login, d.Issues, d.Commits, d.Pulls, d.PullsMerged, d.PullsReviewed, yearAgo)
+			repos.FetchContributions(list, ctx, u.Org, client, u.Login, d.Issues, d.Commits, d.Pulls, yearAgo)
 
 			// creates item for entered user
 			av, err := dynamodbattribute.MarshalMap(d)
@@ -135,7 +131,7 @@ func main() {
 			d.Commits = item.Commits
 			d.Issues = item.Issues
 			d.Pulls = item.Pulls
-			fmt.Println(d.Commits, d.Pulls, d.Issues, d.PullsMerged, d.PullsReviewed)
+			fmt.Println(d.Commits, d.Pulls, d.Issues)
 		}
 
 		bar := commits.CommitsBase(d.Commits)
