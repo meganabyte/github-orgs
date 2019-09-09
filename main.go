@@ -134,7 +134,7 @@ func main() {
 			d.Commits = item.Commits
 			d.Issues = item.Issues
 			d.Pulls = item.Pulls
-			fmt.Println(d.Commits, d.Pulls, d.Issues)
+			fmt.Println(d.Commits, d.Pulls, d.Issues, d.PullsMerged, d.PullsReviewed)
 		}
 
 		bar := commits.CommitsBase(d.Commits)
