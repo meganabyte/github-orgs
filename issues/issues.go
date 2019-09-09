@@ -5,7 +5,7 @@ import (
 	"sort"
 	"github.com/google/go-github/github"
 	"github.com/chenjiandongx/go-echarts/charts"
-	"github.com/meganabyte/github-orgs/pulls"
+	//"github.com/meganabyte/github-orgs/pulls"
 	"time"
 )
 
@@ -54,8 +54,8 @@ func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client
 					p[time] = val + 1
 				}
 			}
-			pulls.GetReviewTimes(issue, p, username, client, ctx, repoOwner, repoName)
-			pulls.GetMergedTimes(issue, p, username, client, ctx, repoOwner, repoName)
+			//pulls.GetReviewTimes(issue, p, username, client, ctx, repoOwner, repoName)
+			//pulls.GetMergedTimes(issue, p, username, client, ctx, repoOwner, repoName)
 		}
 	}
 	return nil
