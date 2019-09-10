@@ -8,12 +8,12 @@ import (
 	"time"
 	"fmt"
 	"log"
-	"sync"
+	//"sync"
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
 				  pM map[string]int, pR map[string]int, repoName string, repoOwner string) {
-	var wg sync.WaitGroup
+	//var wg sync.WaitGroup
 	var list []*github.Issue
 	opt := &github.IssueListByRepoOptions{
 		State: "all",
@@ -35,16 +35,16 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 	for _, issue := range list {
 		if issue.IsPullRequest() {
 			num := issue.GetNumber()
-			wg.Add(2)
-			wg.Wait()
-			go func() {
+			//wg.Add(2)
+			//wg.Wait()
+			//go func() {
 				getReviewTimes(num, username, pR, client, ctx, repoOwner, repoName)
-				wg.Done()
-			}()
-			go func() {
+				//wg.Done()
+			//}()
+			//go func() {
 				getMergedTimes(num, username, pM, client, ctx, repoOwner, repoName)
-				wg.Done()
-			}()
+				//wg.Done()
+			//}()
 		}
 	}
 }
