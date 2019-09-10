@@ -6,10 +6,11 @@ import (
 	"github.com/chenjiandongx/go-echarts/charts"
 	"sort"
 	"time"
+	"log"
 )
 
 func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string,
-					m map[string]int, yearAgo time.Time, repoName string, repoOwner string) (error) {
+					m map[string]int, yearAgo time.Time, repoName string, repoOwner string) {
 	var list []*github.RepositoryCommit
 	opt := &github.CommitsListOptions{
 		SHA: "master", 
@@ -20,7 +21,8 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 	for {
 		l, resp, err := client.Repositories.ListCommits(ctx, repoOwner, repoName, opt)
 		if err != nil {
-			return err
+			log.Println(err)
+			return
 		}
 		list = append(list, l...)
 		if resp.NextPage == 0 {
@@ -29,7 +31,6 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 		opt.Page = resp.NextPage
 	}
 	getCommitTimes(list, m)
-	return nil
 }
 
 func getCommitTimes(list []*github.RepositoryCommit, m map[string]int) {
