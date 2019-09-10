@@ -6,6 +6,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/chenjiandongx/go-echarts/charts"
 	"time"
+	"log"
 )
 
 func GetRepoIssues(ctx context.Context, client *github.Client, orgName string, repoName string, 
@@ -32,10 +33,11 @@ func GetRepoIssues(ctx context.Context, client *github.Client, orgName string, r
 }
 
 func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client, username string, i map[string]int,
-					   p map[string]int, yearAgo time.Time, repoName string, repoOwner string) (error) {
+					   p map[string]int, yearAgo time.Time, repoName string, repoOwner string) {
 	list, err := GetRepoIssues(ctx, client, orgName, repoName, repoOwner, username, yearAgo)
 	if err != nil {
-		return err
+		log.Println(err)
+		return 
 	}
 	for _, issue := range list {
 		time := issue.GetCreatedAt().Format("2006-01-02")
@@ -55,13 +57,12 @@ func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client
 			}
 		}
 	}
-	return nil
 }
 
 func IssuesBase(m map[string]int) *charts.Bar {
 	var keys []string
-	nameItems := []string{}
-	countItems := []int{}
+	nameItems := []string{} // x axis
+	countItems := []int{} // y axis
 	for k := range m {
 		keys = append(keys, k)
 	}
