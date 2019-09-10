@@ -14,7 +14,24 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 	var list []*github.Issue
 	opt := &github.IssueListByRepoOptions{
 		Creator: username,
-		State: "all",
+		State: "closed",
+		Since: time.Now().AddDate(0, -1, 0),
+		ListOptions: github.ListOptions{PerPage: 30},
+	}
+	for {
+		l, resp, err := client.Issues.ListByRepo(ctx, repoOwner, repoName, opt)
+		if err != nil {
+			return err
+		}
+		list = append(list, l...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+	opt = &github.IssueListByRepoOptions{
+		Creator: username,
+		State: "open",
 		Since: time.Now().AddDate(0, -1, 0),
 		ListOptions: github.ListOptions{PerPage: 30},
 	}
@@ -46,7 +63,6 @@ func getReviewTimes(num int, username string, m map[string]int, client *github.C
 		return 
 	}
 	for _, review := range reviews {
-		fmt.Println("pull reviewed by", review.GetUser().GetLogin())
 		if review.GetUser().GetLogin() == username {
 			time := review.GetSubmittedAt().Format("2006-01-02")
 			fmt.Println("PR #", num, "reviewed at", time)
@@ -65,7 +81,6 @@ func getMergedTimes(num int, username string, m map[string]int, client *github.C
 	if err != nil {
 		return
 	}
-	fmt.Println("pull merged by", pull.GetMergedBy().GetLogin())
 	if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
 		time := pull.GetMergedAt().Format("2006-01-02")
 		fmt.Println("PR #", num, "merged at", time)
