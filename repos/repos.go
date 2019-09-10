@@ -31,8 +31,7 @@ func GetRepos(ctx context.Context, orgName string, client *github.Client) ([]*gi
 
 func FetchContributions(repos []*github.Repository, ctx context.Context, orgName string, client *github.Client, username string,
 						i map[string]int, c map[string]int, p map[string]int, pM map[string]int, pR map[string]int, yearAgo time.Time) {
-	var wg sync.WaitGroup
-	var err error					
+	var wg sync.WaitGroup					
 	start := time.Now()
 	for _, repo := range repos {
 		if repo.GetSize() != 0 {
@@ -40,6 +39,7 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 			repoOwner := repo.GetOwner().GetLogin()
 			wg.Add(3)
 			wg.Wait()
+			var err error
 			go func() {
 				err = issues.GetIssuesCreated(ctx, orgName, client, username, i, p, yearAgo, repoName, repoOwner)
 				if err != nil {
