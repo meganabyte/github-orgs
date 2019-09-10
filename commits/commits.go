@@ -3,7 +3,6 @@ package commits
 import (
 	"context"
 	"github.com/google/go-github/github"
-	"github.com/chenjiandongx/go-echarts/charts"
 	"sort"
 	"time"
 	"log"
@@ -17,6 +16,7 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 		Author: username, 
 		ListOptions: github.ListOptions{PerPage: 30},
 		Since: yearAgo,
+		//Until: time.Now().AddDate(0, 0, -7),
 	}
 	for {
 		l, resp, err := client.Repositories.ListCommits(ctx, repoOwner, repoName, opt)
@@ -33,6 +33,31 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 	getCommitTimes(list, m)
 }
 
+/*
+func getLastWeekCommits(ctx context.Context, orgName string, client *github.Client, username string,
+						m map[string]int, yearAgo time.Time, repoName string, repoOwner string) {
+	var list []*github.RepositoryCommit
+	opt := &github.CommitsListOptions{
+		SHA: "master", 
+		ListOptions: github.ListOptions{PerPage: 30},
+		Since: time.Now().AddDate(0, 0, -7),
+	}
+	for {
+		l, resp, err := client.Repositories.ListCommits(ctx, repoOwner, repoName, opt)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		list = append(list, l...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+	getCommitTimes(list, m)
+}
+*/
+
 func getCommitTimes(list []*github.RepositoryCommit, m map[string]int) {
 	for _, commit := range list {
 		author := commit.Commit.GetAuthor()
@@ -45,7 +70,7 @@ func getCommitTimes(list []*github.RepositoryCommit, m map[string]int) {
 	}
 }
 
-func CommitsBase(m map[string]int) *charts.Bar {
+func CommitsBase(m map[string]int) ([]string, []int) {
 	var keys []string
 	nameItems := []string{}
 	countItems := []int{}
@@ -57,7 +82,5 @@ func CommitsBase(m map[string]int) *charts.Bar {
 		countItems = append(countItems, m[k])
 		nameItems = append(nameItems, k)
 	}
-	bar := charts.NewBar()
-	bar.AddXAxis(nameItems).AddYAxis("Commits Created", countItems)
-	return bar
+	return nameItems, countItems
 }
