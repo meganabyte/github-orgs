@@ -7,10 +7,11 @@ import (
 	"github.com/chenjiandongx/go-echarts/charts"
 	"time"
 	"fmt"
+	"log"
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
-				  pM map[string]int, pR map[string]int, repoName string, repoOwner string) (error) {
+				  pM map[string]int, pR map[string]int, repoName string, repoOwner string) {
 	var list []*github.Issue
 	opt := &github.IssueListByRepoOptions{
 		State: "all",
@@ -20,7 +21,8 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 	for {
 		l, resp, err := client.Issues.ListByRepo(ctx, repoOwner, repoName, opt)
 		if err != nil {
-			return err
+			log.Println(err)
+			return 
 		}
 		list = append(list, l...)
 		if resp.NextPage == 0 {
@@ -35,13 +37,13 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 			getMergedTimes(num, username, pM, client, ctx, repoOwner, repoName)
 		}
 	}
-	return nil
 }
 
 func getReviewTimes(num int, username string, m map[string]int, client *github.Client, ctx context.Context,
 				   repoOwner string, repoName string) {
 	reviews, _, err := client.PullRequests.ListReviews(ctx, repoOwner, repoName, num, nil)
 	if err != nil {
+		log.Println(err)
 		return 
 	}
 	for _, review := range reviews {
@@ -61,6 +63,7 @@ func getMergedTimes(num int, username string, m map[string]int, client *github.C
 					repoOwner string, repoName string) {
 	pull, _, err := client.PullRequests.Get(ctx, repoOwner, repoName, num)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 	if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
