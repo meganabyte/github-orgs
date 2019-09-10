@@ -14,7 +14,7 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 	var list []*github.Issue
 	opt := &github.IssueListByRepoOptions{
 		State: "all",
-		Since: time.Now().AddDate(0, -1, 0),
+		Since: time.Now().AddDate(0, 0, -7),
 		ListOptions: github.ListOptions{PerPage: 30},
 	}
 	for {
