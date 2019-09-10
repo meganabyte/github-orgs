@@ -12,7 +12,7 @@ import (
 )
 
 func GetUserPulls(ctx context.Context, orgName string, client *github.Client, username string,
-				  pM map[string]int, pR map[string]int, repoName string, repoOwner string) {
+				  pM map[string]int, pR map[string]int, iC map[string]int, repoName string, repoOwner string) {
 	//var wg sync.WaitGroup
 	var list []*github.Issue
 	opt := &github.IssueListByRepoOptions{
@@ -33,8 +33,8 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 		opt.Page = resp.NextPage
 	}
 	for _, issue := range list {
+		num := issue.GetNumber()
 		if issue.IsPullRequest() {
-			num := issue.GetNumber()
 			//wg.Add(2)
 			//wg.Wait()
 			//go func() {
@@ -46,6 +46,7 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 				//wg.Done()
 			//}()
 		}
+		getIssueCommentTimes(num, username, iC, client, ctx, repoOwner, repoName)
 	}
 }
 
@@ -85,6 +86,26 @@ func getMergedTimes(num int, username string, m map[string]int, client *github.C
 			m[time] = val + 1
 		}
 	}
+}
+func getIssueCommentTimes(num int, username string, m map[string]int, client *github.Client, ctx context.Context,
+						  repoOwner string, repoName string) {
+	comments, _, err := client.Issues.ListComments(ctx, repoOwner, repoName, num, nil)
+	if err != nil {
+		log.Println(err)
+		return 
+	}
+	for _, comment := range comments {
+		if comment.GetUser().GetLogin() == username {
+			time := comment.GetCreatedAt().Format("2006-01-02")
+			fmt.Println("Issue #", num, "comment made at", time, "in repo", repoName)
+			if val, ok := m[time]; !ok {
+				m[time] = 1
+			} else {
+				m[time] = val + 1
+			}
+		}
+	}
+
 }
 
 func PullsBase(m map[string]int) *charts.Bar {
