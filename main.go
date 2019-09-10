@@ -4,16 +4,16 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
+	//"os"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/gorilla/mux"
-	"github.com/meganabyte/github-orgs/commits"
-	"github.com/meganabyte/github-orgs/issues"
+	//"github.com/meganabyte/github-orgs/commits"
+	//"github.com/meganabyte/github-orgs/issues"
 	"github.com/meganabyte/github-orgs/members"
-	"github.com/meganabyte/github-orgs/pulls"
+	//"github.com/meganabyte/github-orgs/pulls"
 	"github.com/meganabyte/github-orgs/repos"
 	"fmt"
 	"time"
@@ -29,6 +29,7 @@ type Data struct {
 	User string
 	Org string
 	Issues  map[string]int
+	IssuesCommented map[string]int
 	Pulls   map[string]int
 	PullsMerged   map[string]int
 	PullsReviewed   map[string]int
@@ -41,6 +42,7 @@ var (
 		User: "",
 		Org: "",
 		Issues:  make(map[string]int),
+		IssuesCommented: make(map[string]int),
 		Pulls:   make(map[string]int),
 		PullsMerged:   make(map[string]int),
 		PullsReviewed:   make(map[string]int),
@@ -51,7 +53,7 @@ var (
 // assumes there is a DynamoDB table named UserData
 
 func main() {
-	var yearAgo = time.Now().AddDate(-2, 0, 0)
+	var yearAgo = time.Now().AddDate(-1, 0, 0)
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
 			Region: aws.String("us-east-1"),
@@ -59,7 +61,8 @@ func main() {
 	}))
 	svc := dynamodb.New(sess)
 	router := mux.NewRouter()
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	fs := http.FileServer(http.Dir("./static/"))
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		t, err := template.ParseFiles("assets/index.html")
@@ -107,7 +110,8 @@ func main() {
 			// compute user data
 			ctx, client := members.Authentication(u.Token)
 			list, _ := repos.GetRepos(ctx, u.Org, client)
-			repos.FetchContributions(list, ctx, u.Org, client, u.Login, d.Issues, d.Commits, d.Pulls, d.PullsMerged, d.PullsReviewed, yearAgo)
+			repos.FetchContributions(list, ctx, u.Org, client, u.Login, d.Issues, d.Commits,
+									 d.Pulls, d.PullsMerged, d.PullsReviewed, d.IssuesCommented, yearAgo)
 
 			// creates item for entered user
 			av, err := dynamodbattribute.MarshalMap(d)
@@ -124,7 +128,7 @@ func main() {
 				log.Println(err)
 				return
 			}
-			fmt.Println(d.Commits, d.Pulls, d.Issues, d.PullsMerged, d.PullsReviewed)
+			fmt.Println(d.Commits, d.Pulls, d.Issues, d.PullsMerged, d.PullsReviewed, d.IssuesCommented)
 		} else {
 			item := Data{}
 			err = dynamodbattribute.UnmarshalMap(result.Item, &item)
@@ -137,6 +141,7 @@ func main() {
 			fmt.Println(d.Commits, d.Pulls, d.Issues)
 		}
 
+		/*
 		bar := commits.CommitsBase(d.Commits)
 		bar.Overlap(issues.IssuesBase(d.Issues), pulls.PullsBase(d.Pulls))
 		bar.Title = u.Login
@@ -150,7 +155,8 @@ func main() {
 			log.Println(err)
 			return
 		}
-
+		*/
+		
 	}).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8080", router))
