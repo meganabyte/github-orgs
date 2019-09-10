@@ -13,25 +13,7 @@ func GetUserPulls(ctx context.Context, orgName string, client *github.Client, us
 				  pM map[string]int, pR map[string]int, repoName string, repoOwner string) (error) {
 	var list []*github.Issue
 	opt := &github.IssueListByRepoOptions{
-		Creator: username,
-		State: "closed",
-		Since: time.Now().AddDate(0, -1, 0),
-		ListOptions: github.ListOptions{PerPage: 30},
-	}
-	for {
-		l, resp, err := client.Issues.ListByRepo(ctx, repoOwner, repoName, opt)
-		if err != nil {
-			return err
-		}
-		list = append(list, l...)
-		if resp.NextPage == 0 {
-			break
-		}
-		opt.Page = resp.NextPage
-	}
-	opt = &github.IssueListByRepoOptions{
-		Creator: username,
-		State: "open",
+		State: "all",
 		Since: time.Now().AddDate(0, -1, 0),
 		ListOptions: github.ListOptions{PerPage: 30},
 	}
