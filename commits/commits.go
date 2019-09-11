@@ -72,7 +72,7 @@ func getCommitTimes(list []*github.RepositoryCommit, m map[string]int) {
 
 
 // given map of date:conts & map of desired dates, want to return all dates in sorted order
-func CommitsBase(m map[string]int, x map[string]struct{}, dates []string) (map[string]struct{}) {
+func CommitsBase(m map[string]int, x map[string]struct{}) (map[string]struct{}) {
 	// for each date in map
 	// if not contained in desired dates, add to desired dates
 	for k := range m { 
