@@ -70,18 +70,35 @@ func getCommitTimes(list []*github.RepositoryCommit, m map[string]int) {
 	}
 }
 
-func CommitsBase(m map[string]int, x map[string]struct{}) (map[string]struct{}, []int) {
-	var keys []string
-	countItems := []int{}
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		countItems = append(countItems, m[k])
+
+// given map of date:conts & map of desired dates, want to return all dates in sorted order
+func CommitsBase(m map[string]int, x map[string]struct{}, dates []string) (map[string]struct{}) {
+	// for each date in map
+	// if not contained in desired dates, add to desired dates
+	for k := range m { 
 		if _, ok := x[k]; !ok {
-			x[k] = struct{}{}
+			x[k] = struct{}{} 
 		}
 	}
-	return x, countItems
+	return x
+}
+
+
+// want to return list of conts at those dates
+func GetContsList(m map[string]int, x map[string]struct{}) ([]int, []string) {
+	// for each date, if date not contained in desired dates, add value (cont) to list of all conts at those dates
+	var dates []string
+	var conts []int
+	for k := range x {
+		dates = append(dates, k)
+	}
+	sort.Strings(dates)
+	for _, k := range dates {
+		if _, ok := m[k]; !ok {
+			conts = append(conts, 0) 
+		} else {
+			conts = append(conts, m[k])
+		}
+	}
+	return conts, dates
 }
