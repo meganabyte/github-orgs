@@ -70,9 +70,8 @@ func getCommitTimes(list []*github.RepositoryCommit, m map[string]int) {
 	}
 }
 
-func CommitsBase(m map[string]int) ([]string, []int) {
+func CommitsBase(m map[string]int, x map[string]struct{}) (map[string]struct{}, []int) {
 	var keys []string
-	nameItems := []string{}
 	countItems := []int{}
 	for k := range m {
 		keys = append(keys, k)
@@ -80,7 +79,9 @@ func CommitsBase(m map[string]int) ([]string, []int) {
 	sort.Strings(keys)
 	for _, k := range keys {
 		countItems = append(countItems, m[k])
-		nameItems = append(nameItems, k)
+		if _, ok := x[k]; !ok {
+			x[k] = struct{}{}
+		}
 	}
-	return nameItems, countItems
+	return x, countItems
 }
