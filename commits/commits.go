@@ -56,9 +56,9 @@ func getLastWeekCommits(ctx context.Context, orgName string, client *github.Clie
 		opt.Page = resp.NextPage
 	}
 	getCommitTimes(list, m)
-	cD = len(list) - len(m)
-	wC = len(m)
-	fmt.Println("Commits Difference:", cD, "Commits Made this Week:", wC)
+	cD = cD + (len(list) - len(m))
+	wC = wC + len(m)
+	fmt.Println("Total Commits Made in repo", repoName, "Commits made by User", wC)
 }
 
 
@@ -83,7 +83,6 @@ func CommitsBase(m map[string]int, x map[string]struct{}) (map[string]struct{}) 
 	}
 	return x
 }
-
 
 // want to return list of conts at those dates
 func GetContsList(m map[string]int, x map[string]struct{}) ([]int, []string) {
