@@ -6,17 +6,17 @@ import (
 	"sort"
 	"time"
 	"log"
+	"fmt"
 )
 
 func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string,
-					m map[string]int, yearAgo time.Time, repoName string, repoOwner string) {
+					m map[string]int, yearAgo time.Time, repoName string, repoOwner string, cD int, wC int) {
 	var list []*github.RepositoryCommit
 	opt := &github.CommitsListOptions{
 		SHA: "master", 
 		Author: username, 
 		ListOptions: github.ListOptions{PerPage: 30},
 		Since: yearAgo,
-		//Until: time.Now().AddDate(0, 0, -7),
 	}
 	for {
 		l, resp, err := client.Repositories.ListCommits(ctx, repoOwner, repoName, opt)
@@ -31,11 +31,12 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 		opt.Page = resp.NextPage
 	}
 	getCommitTimes(list, m)
+	getLastWeekCommits(ctx, orgName, client, username, yearAgo, repoName, repoOwner, cD, wC)
 }
 
-/*
 func getLastWeekCommits(ctx context.Context, orgName string, client *github.Client, username string,
-						m map[string]int, yearAgo time.Time, repoName string, repoOwner string) {
+						yearAgo time.Time, repoName string, repoOwner string, cD int, wC int) {
+	m := make(map[string]int)
 	var list []*github.RepositoryCommit
 	opt := &github.CommitsListOptions{
 		SHA: "master", 
@@ -46,7 +47,7 @@ func getLastWeekCommits(ctx context.Context, orgName string, client *github.Clie
 		l, resp, err := client.Repositories.ListCommits(ctx, repoOwner, repoName, opt)
 		if err != nil {
 			log.Println(err)
-			return
+			break
 		}
 		list = append(list, l...)
 		if resp.NextPage == 0 {
@@ -55,8 +56,11 @@ func getLastWeekCommits(ctx context.Context, orgName string, client *github.Clie
 		opt.Page = resp.NextPage
 	}
 	getCommitTimes(list, m)
+	cD = len(list) - len(m)
+	wC = len(m)
+	fmt.Println("Commits Difference:", cD, "Commits Made this Week:", wC)
 }
-*/
+
 
 func getCommitTimes(list []*github.RepositoryCommit, m map[string]int) {
 	for _, commit := range list {
@@ -70,11 +74,8 @@ func getCommitTimes(list []*github.RepositoryCommit, m map[string]int) {
 	}
 }
 
-
 // given map of date:conts & map of desired dates, want to return all dates in sorted order
 func CommitsBase(m map[string]int, x map[string]struct{}) (map[string]struct{}) {
-	// for each date in map
-	// if not contained in desired dates, add to desired dates
 	for k := range m { 
 		if _, ok := x[k]; !ok {
 			x[k] = struct{}{} 
