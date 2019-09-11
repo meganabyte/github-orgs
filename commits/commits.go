@@ -56,8 +56,8 @@ func getLastWeekCommits(ctx context.Context, orgName string, client *github.Clie
 		opt.Page = resp.NextPage
 	}
 	getCommitTimes(list, m)
-	wC[0] += (len(list) - len(m)) // Difference
-	wC[1] += len(m)				  // Commits Made by User
+	wC[0] = wC[0] + (len(list) - len(m))     // Difference
+	wC[1] = wC[1] + len(m)				     // Commits Made by User
 	fmt.Println("Total Commits Made in repo", repoName,":", len(list), "Commits made by User:", wC[0], "Diff:", wC[1])
 }
 
