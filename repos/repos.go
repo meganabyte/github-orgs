@@ -31,7 +31,7 @@ func GetRepos(ctx context.Context, orgName string, client *github.Client) ([]*gi
 
 func FetchContributions(repos []*github.Repository, ctx context.Context, orgName string, client *github.Client, username string,
 				i map[string]int, c map[string]int, p map[string]int, pM map[string]int, pR map[string]int, iC map[string]int, 
-				cD int, wC int, yearAgo time.Time) {
+				wC []int, yearAgo time.Time) {
 	//var wg sync.WaitGroup					
 	start := time.Now()
 	for _, repo := range repos {
@@ -45,7 +45,7 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 				//wg.Done()
 			//}()
 			//go func() {
-				commits.GetUserCommits(ctx, orgName, client, username, c, yearAgo, repoName, repoOwner, cD, wC)
+				commits.GetUserCommits(ctx, orgName, client, username, c, yearAgo, repoName, repoOwner, wC)
 				//wg.Done()
 			//}()
 			//go func() {
