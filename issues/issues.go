@@ -4,7 +4,6 @@ import (
 	"context"
 	"sort"
 	"github.com/google/go-github/github"
-	"github.com/chenjiandongx/go-echarts/charts"
 	"time"
 	"log"
 )
@@ -59,7 +58,7 @@ func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client
 	}
 }
 
-func IssuesBase(m map[string]int) *charts.Bar {
+func IssuesBase(m map[string]int) ([]string, []int) {
 	var keys []string
 	nameItems := []string{} // x axis
 	countItems := []int{} // y axis
@@ -71,7 +70,5 @@ func IssuesBase(m map[string]int) *charts.Bar {
 		countItems = append(countItems, m[k])
 		nameItems = append(nameItems, k)
 	}
-	bar := charts.NewBar()
-	bar.AddXAxis(nameItems).AddYAxis("Issues Opened", countItems)
-	return bar
+	return nameItems, countItems
 }
