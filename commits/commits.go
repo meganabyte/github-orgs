@@ -10,7 +10,7 @@ import (
 )
 
 func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string,
-					m map[string]int, yearAgo time.Time, repoName string, repoOwner string, cD int, wC int) {
+					m map[string]int, yearAgo time.Time, repoName string, repoOwner string, wC []int) {
 	var list []*github.RepositoryCommit
 	opt := &github.CommitsListOptions{
 		SHA: "master", 
@@ -31,11 +31,11 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 		opt.Page = resp.NextPage
 	}
 	getCommitTimes(list, m)
-	getLastWeekCommits(ctx, orgName, client, username, yearAgo, repoName, repoOwner, cD, wC)
+	getLastWeekCommits(ctx, orgName, client, username, yearAgo, repoName, repoOwner, wC)
 }
 
 func getLastWeekCommits(ctx context.Context, orgName string, client *github.Client, username string,
-						yearAgo time.Time, repoName string, repoOwner string, cD int, wC int) {
+						yearAgo time.Time, repoName string, repoOwner string, wC []int) {
 	m := make(map[string]int)
 	var list []*github.RepositoryCommit
 	opt := &github.CommitsListOptions{
@@ -56,9 +56,9 @@ func getLastWeekCommits(ctx context.Context, orgName string, client *github.Clie
 		opt.Page = resp.NextPage
 	}
 	getCommitTimes(list, m)
-	cD = cD + (len(list) - len(m))
-	wC = wC + len(m)
-	fmt.Println("Total Commits Made in repo", repoName,":", len(list), "Commits made by User", wC, "Diff:", cD)
+	wC[0] += (len(list) - len(m)) // Difference
+	wC[1] += len(m)				  // Commits Made by User
+	fmt.Println("Total Commits Made in repo", repoName,":", len(list), "Commits made by User:", wC[0], "Diff:", wC[1])
 }
 
 
