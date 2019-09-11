@@ -10,7 +10,7 @@ import (
 )
 
 func GetUserCommits(ctx context.Context, orgName string, client *github.Client, username string,
-					m map[string]int, yearAgo time.Time, repoName string, repoOwner string, wC []int) {
+					m map[string]int, yearAgo time.Time, repoName string, repoOwner string, wC [2]int) {
 	var list []*github.RepositoryCommit
 	opt := &github.CommitsListOptions{
 		SHA: "master", 
@@ -35,7 +35,7 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 }
 
 func getLastWeekCommits(ctx context.Context, orgName string, client *github.Client, username string,
-						yearAgo time.Time, repoName string, repoOwner string, wC []int) {
+						yearAgo time.Time, repoName string, repoOwner string, wC [2]int) {
 	m := make(map[string]int)
 	var list []*github.RepositoryCommit
 	opt := &github.CommitsListOptions{
