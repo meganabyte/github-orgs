@@ -75,7 +75,7 @@ func getLastWeekCommits(ctx context.Context, orgName string, client *github.Clie
 	}
 	fmt.Println("In repo", repoName, len(list1), "commits were made")
 	fmt.Println("In repo", repoName, len(list2), "commits were made by the user")
-	wC[0] = wC[0] + (len(list2) - len(list2))     // Difference
+	wC[0] = wC[0] + (len(list1) - len(list2))     // Difference
 	wC[1] = wC[1] + len(list2)				     // Commits Made by User
 	fmt.Println("Commits made by user:", wC[1], "Difference in Commits", wC[0])
 }
