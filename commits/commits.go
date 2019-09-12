@@ -36,8 +36,7 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 
 func getLastWeekCommits(ctx context.Context, orgName string, client *github.Client, username string,
 						yearAgo time.Time, repoName string, repoOwner string, wC []int) {
-	m := make(map[string]int)
-	var list []*github.RepositoryCommit
+	var list1 []*github.RepositoryCommit
 	opt := &github.CommitsListOptions{
 		SHA: "master", 
 		ListOptions: github.ListOptions{PerPage: 30},
@@ -49,17 +48,35 @@ func getLastWeekCommits(ctx context.Context, orgName string, client *github.Clie
 			log.Println(err)
 			break
 		}
-		list = append(list, l...)
+		list1 = append(list1, l...)
 		if resp.NextPage == 0 {
 			break
 		}
 		opt.Page = resp.NextPage
 	}
-	getCommitTimes(list, m)
-	fmt.Println("In repo", repoName, len(list), "commits were made")
-	fmt.Println("In repo", repoName, len(m), "commits were made by the user")
-	wC[0] = wC[0] + (len(list) - len(m))     // Difference
-	wC[1] = wC[1] + len(m)				     // Commits Made by User
+	var list2 []*github.RepositoryCommit
+	opt = &github.CommitsListOptions{
+		SHA: "master", 
+		Author: username,
+		ListOptions: github.ListOptions{PerPage: 30},
+		Since: time.Now().AddDate(0, 0, -7),
+	}
+	for {
+		l, resp, err := client.Repositories.ListCommits(ctx, repoOwner, repoName, opt)
+		if err != nil {
+			log.Println(err)
+			break
+		}
+		list2 = append(list2, l...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+	fmt.Println("In repo", repoName, len(list1), "commits were made")
+	fmt.Println("In repo", repoName, len(list2), "commits were made by the user")
+	wC[0] = wC[0] + (len(list2) - len(list2))     // Difference
+	wC[1] = wC[1] + len(list2)				     // Commits Made by User
 	fmt.Println("Commits made by user:", wC[1], "Difference in Commits", wC[0])
 }
 
