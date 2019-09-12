@@ -2,7 +2,6 @@ package issues
 
 import (
 	"context"
-	"sort"
 	"github.com/google/go-github/github"
 	"time"
 	"log"
@@ -58,17 +57,20 @@ func GetIssuesCreated(ctx context.Context, orgName string, client *github.Client
 	}
 }
 
-func IssuesBase(m map[string]int) ([]string, []int) {
-	var keys []string
-	nameItems := []string{} // x axis
-	countItems := []int{} // y axis
-	for k := range m {
-		keys = append(keys, k)
+// get map of date:cont, want to return list of dates and list of conts at those dates
+func IssuesBase(m map[string]int) ([]int, []string) {
+	// get dates in map 
+	nameItems := []string{} 
+	countItems := []int{} 
+	for i := 0; i < 7; i++ {
+		time := time.Now().AddDate(0, 0, (-7 + i)).Format("2006-01-02")
+		if val, ok := m[time]; !ok {
+			countItems = append(countItems, 0)
+		} else {
+			countItems = append(countItems, val)
+		}
+		nameItems = append(nameItems, time)
+
 	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		countItems = append(countItems, m[k])
-		nameItems = append(nameItems, k)
-	}
-	return nameItems, countItems
+	return countItems, nameItems
 }
