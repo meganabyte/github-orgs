@@ -2,9 +2,7 @@ package pulls
 
 import (
 	"context"
-	"sort"
 	"github.com/google/go-github/github"
-	"github.com/chenjiandongx/go-echarts/charts"
 	"time"
 	"fmt"
 	"log"
@@ -105,22 +103,4 @@ func getIssueCommentTimes(num int, username string, m map[string]int, client *gi
 			}
 		}
 	}
-
-}
-
-func PullsBase(m map[string]int) *charts.Bar {
-	var keys []string
-	nameItems := []string{}
-	countItems := []int{}
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		countItems = append(countItems, m[k])
-		nameItems = append(nameItems, k)
-	}
-	bar := charts.NewBar()
-	bar.AddXAxis(nameItems).AddYAxis("Pull Requests Opened", countItems)
-	return bar
 }
