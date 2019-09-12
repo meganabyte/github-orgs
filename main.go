@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	//"os"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -13,7 +12,6 @@ import (
 	"github.com/meganabyte/github-orgs/commits"
 	"github.com/meganabyte/github-orgs/issues"
 	"github.com/meganabyte/github-orgs/members"
-	//"github.com/meganabyte/github-orgs/pulls"
 	"io"
 	"time"
 	"github.com/meganabyte/github-orgs/repos"
@@ -332,8 +330,8 @@ func main() {
 						}],
 		
 						labels: [
-							'`+u.Login+`',
 							'others',
+							'`+u.Login+`'
 						]
 					},
 					options: {
