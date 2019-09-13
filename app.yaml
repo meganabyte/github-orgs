@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: app-container
-        image: bobbam/github-orgs:db5
+        image: bobbam/github-orgs:latest
         imagePullPolicy: "Always"
         ports:
         - containerPort: 8080
