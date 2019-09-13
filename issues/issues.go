@@ -11,8 +11,8 @@ func GetRepoIssues(ctx context.Context, client *github.Client, orgName string, r
 					repoOwner string, username string, yearAgo time.Time) ([]*github.Issue, error) {
 	var list []*github.Issue
 	opt := &github.IssueListByRepoOptions{
-		Creator: username,
 		State: "all",
+		Creator: username,
 		Since: yearAgo,
 		ListOptions: github.ListOptions{PerPage: 30},
 	}
