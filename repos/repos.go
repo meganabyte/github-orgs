@@ -11,7 +11,6 @@ import (
 	"sync"
 )
 
-
 func GetRepos(ctx context.Context, orgName string, client *github.Client) ([]*github.Repository, error) {
 	var list []*github.Repository
 	opt := &github.RepositoryListByOrgOptions{Type: "sources", ListOptions: github.ListOptions{PerPage: 30}}
@@ -40,9 +39,20 @@ func FetchContributions(repos []*github.Repository, ctx context.Context, orgName
 			repoOwner := repo.GetOwner().GetLogin()
 			wg.Add(1)
 			go func() {
-				issues.GetIssuesCreated(ctx, orgName, client, username, i, p, yearAgo, repoName, repoOwner)
-				commits.GetUserCommits(ctx, orgName, client, username, c, yearAgo, repoName, repoOwner, wC)
-				pulls.GetUserPulls(ctx, orgName, client, username, pM, pR, iC, repoName, repoOwner)
+				wg.Add(3)
+				go func() {
+					issues.GetIssuesCreated(ctx, orgName, client, username, i, p, yearAgo, repoName, repoOwner)
+					wg.Done()
+				}()
+				go func() {
+					commits.GetUserCommits(ctx, orgName, client, username, c, yearAgo, repoName, repoOwner, wC)
+					wg.Done()
+				}()
+				go func() {
+					pulls.GetUserPulls(ctx, orgName, client, username, pM, pR, iC, repoName, repoOwner)
+					wg.Done()
+				}()
+				wg.Wait()
 				wg.Done()
 			}()
 		}
