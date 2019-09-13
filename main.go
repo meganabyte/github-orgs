@@ -19,7 +19,7 @@ import (
 
 type Data struct {
 	User			string
-	Org				string
+	Org			string
 	Token			string
 	Commits         map[string]int
 	Issues          map[string]int
@@ -34,7 +34,7 @@ type Chart struct {
 	X1               map[string]struct{}
 	CommitsY         []int
 	IssuesY          []int
-	X2 				 map[string]struct{}
+	X2 		 map[string]struct{}
 	PullsY           []int
 	PullsMergedY     []int
 	IssuesCommentedY []int
