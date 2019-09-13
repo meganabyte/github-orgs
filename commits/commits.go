@@ -14,9 +14,9 @@ func GetUserCommits(ctx context.Context, orgName string, client *github.Client, 
 	var list []*github.RepositoryCommit
 	opt := &github.CommitsListOptions{
 		SHA: "master", 
-		Author: username, 
+		Author: username,
+		Since: yearAgo, 
 		ListOptions: github.ListOptions{PerPage: 30},
-		Since: yearAgo,
 	}
 	for {
 		l, resp, err := client.Repositories.ListCommits(ctx, repoOwner, repoName, opt)
