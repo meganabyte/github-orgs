@@ -104,6 +104,7 @@ func main() {
 		d.User = u.Login
 		d.Org = u.Org
 
+		fmt.Println("Fetching for", d.User, "in", d.Org)
 		params := &dynamodb.GetItemInput{
 			TableName: aws.String("UserData"),
 			Key: map[string]*dynamodb.AttributeValue{
