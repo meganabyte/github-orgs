@@ -48,23 +48,6 @@ type Chart struct {
 	PullsReviewedY   []int
 }
 
-var (
-	u User
-	d = Data{
-		Commits:         make(map[string]int),
-		Issues:          make(map[string]int),
-		IssuesCommented: make(map[string]int),
-		Pulls:           make(map[string]int),
-		PullsMerged:     make(map[string]int),
-		PullsReviewed:   make(map[string]int),
-		WeekCommits:     make([]int, 2),
-	}
-	c = Chart{
-		X1: make(map[string]struct{}),
-		X2: make(map[string]struct{}),
-	}
-)
-
 // assumes there is a DynamoDB table named UserData
 
 func main() {
@@ -98,11 +81,29 @@ func main() {
 			log.Println(err)
 			return
 		}
+		var (
+			u User
+			d = Data{
+				Commits:         make(map[string]int),
+				Issues:          make(map[string]int),
+				IssuesCommented: make(map[string]int),
+				Pulls:           make(map[string]int),
+				PullsMerged:     make(map[string]int),
+				PullsReviewed:   make(map[string]int),
+				WeekCommits:     make([]int, 2),
+			}
+			c = Chart{
+				X1: make(map[string]struct{}),
+				X2: make(map[string]struct{}),
+			}
+		)
 		u.Org = r.FormValue("org")
 		u.Token = r.FormValue("token")
 		u.Login = r.FormValue("user")
 		d.User = u.Login
 		d.Org = u.Org
+
+		// want to resent form values
 
 		fmt.Println("Fetching for", d.User, "in", d.Org)
 		params := &dynamodb.GetItemInput{
@@ -391,7 +392,7 @@ func main() {
 			log.Println(err)
 			return
 		}
-
+		
 	}).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8080", router))
