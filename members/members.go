@@ -16,7 +16,7 @@ func Authentication(token string) (context.Context, *github.Client) {
 	return ctx, client
 }
 
-func RenderChart(w http.ResponseWriter, login string, org string, timeChart1 string, timeChart2 string, timeChart4 string, 
+func RenderChart(w http.ResponseWriter, login string, org string, timeChart1 []byte, timeChart2 []byte, timeChart4 []byte, 
 				 commitsY []byte, issuesY []byte, pullsY []byte, pullsMergedY []byte, pullsReviewedY []byte, issuesCommentedY []byte, 
 				 weeklyCommits[]byte) (error) {
 	_, err := io.WriteString(w, `<!DOCTYPE html>
