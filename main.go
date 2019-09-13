@@ -4,22 +4,18 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/gorilla/mux"
 	"github.com/meganabyte/github-orgs/commits"
 	"github.com/meganabyte/github-orgs/issues"
 	"github.com/meganabyte/github-orgs/members"
-	"time"
 	"github.com/meganabyte/github-orgs/repos"
 	"encoding/json"
+	"time"
 )
 
 type Data struct {
 	User			string
-	Org			string
+	Org				string
 	Token			string
 	Commits         map[string]int
 	Issues          map[string]int
@@ -34,23 +30,15 @@ type Chart struct {
 	X1               map[string]struct{}
 	CommitsY         []int
 	IssuesY          []int
-	X2 		 map[string]struct{}
+	X2 				 map[string]struct{}
 	PullsY           []int
 	PullsMergedY     []int
 	IssuesCommentedY []int
 	PullsReviewedY   []int
 }
 
-// assumes there is a DynamoDB table named UserData
-
 func main() {
 	var yearAgo = time.Now().AddDate(-1, 0, 0)
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		Config: aws.Config{
-			Region: aws.String("us-east-1"),
-		},
-	}))
-	svc := dynamodb.New(sess)
 	router := mux.NewRouter()
 	fs := http.FileServer(http.Dir("./static/"))
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
@@ -78,56 +66,15 @@ func main() {
 			X1: make(map[string]struct{}),
 			X2: make(map[string]struct{}),
 		}
+
 		d.Org = r.FormValue("org")
 		d.Token = r.FormValue("token")
 		d.User = r.FormValue("user")
 
-		params := &dynamodb.GetItemInput{
-			TableName: aws.String("UserData"),
-			Key: map[string]*dynamodb.AttributeValue{
-				"User": {
-					S: aws.String(d.User),
-				},
-				"Org": {
-					S: aws.String(d.Org),
-				},
-			},
-		}
-
-		result, err := svc.GetItem(params)
-		throwError(err)
-
-		// if this item doesn't exist
-		
-		if len(result.Item) == 0 {
-			// compute user data
-			ctx, client := members.Authentication(d.Token)
-			list, _ := repos.GetRepos(ctx, d.Org, client)
-			repos.FetchContributions(list, ctx, d.Org, client, d.User, d.Issues, d.Commits,
-			d.Pulls, d.PullsMerged, d.PullsReviewed, d.IssuesCommented, d.WeekCommits, yearAgo)
-
-			// creates item for entered user
-			av, err := dynamodbattribute.MarshalMap(d)
-			throwError(err)
-			input := &dynamodb.PutItemInput{
-				Item:      av,
-				TableName: aws.String("UserData"),
-			}
-			_, err = svc.PutItem(input)
-			throwError(err)
-
-		} else {
-			item := Data{}
-			err = dynamodbattribute.UnmarshalMap(result.Item, &item)
-			throwError(err)
-			d.Commits = item.Commits
-			d.Issues = item.Issues
-			d.Pulls = item.Pulls
-			d.PullsMerged = item.PullsMerged
-			d.PullsReviewed = item.PullsReviewed
-			d.IssuesCommented = item.IssuesCommented
-			d.WeekCommits = item.WeekCommits
-		}
+		ctx, client := members.Authentication(d.Token)
+		list, _ := repos.GetRepos(ctx, d.Org, client)
+		repos.FetchContributions(list, ctx, d.Org, client, d.User, d.Issues, d.Commits,
+		d.Pulls, d.PullsMerged, d.PullsReviewed, d.IssuesCommented, d.WeekCommits, yearAgo)
 
 		var dates1 []string
 		var dates2 []string
