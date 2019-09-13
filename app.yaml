@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  labels:
+    app: app
+spec:
+  selector:
+    matchLabels:
+      run: app
+  template:
+    metadata:
+      labels:
+        run: app
+    spec:
+      containers:
+      - name: app-container
+        image: bobbam/github-orgs:db5
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: 8080
