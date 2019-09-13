@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/google/go-github/github"
 	"time"
-	"fmt"
 	"log"
 	"sync"
 )
@@ -55,7 +54,6 @@ func getReviewTimes(num int, username string, m map[string]int, client *github.C
 	for _, review := range reviews {
 		if review.GetUser().GetLogin() == username {
 			time := review.GetSubmittedAt().Format("2006-01-02")
-			fmt.Println("PR #", num, "reviewed at", time, "in repo", repoName)
 			if val, ok := m[time]; !ok {
 				m[time] = 1
 			} else {
@@ -74,7 +72,6 @@ func getMergedTimes(num int, username string, m map[string]int, client *github.C
 	}
 	if pull.GetMerged() && pull.GetMergedBy().GetLogin() == username {
 		time := pull.GetMergedAt().Format("2006-01-02")
-		fmt.Println("PR #", num, "merged at", time, "in repo", repoName)
 		if val, ok := m[time]; !ok {
 			m[time] = 1
 		} else {
@@ -93,7 +90,6 @@ func getIssueCommentTimes(num int, username string, m map[string]int, client *gi
 	for _, comment := range comments {
 		if comment.GetUser().GetLogin() == username {
 			time := comment.GetCreatedAt().Format("2006-01-02")
-			fmt.Println("Issue #", num, "comment made at", time, "in repo", repoName)
 			if val, ok := m[time]; !ok {
 				m[time] = 1
 			} else {
