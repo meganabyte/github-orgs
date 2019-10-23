@@ -44,7 +44,7 @@ func main() {
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		t, err := template.ParseFiles("assets/index.html")
+		t, err := template.ParseFiles("index.html")
 		throwError(err)
 		err = t.Execute(w, nil)
 		throwError(err)
