@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../static/template.css">
+    </head>
+
+    <body>
+        <h2> Github User Contributions Report</h2><br/>
+        <h3> An open source analytics tool for contribution insights</h3>
+        <form action="/" method="POST">
+            <span class="input"></span>
+            <input type="text" name="org"
+            placeholder="Github Organization"
+            /><br/>
+            <span class="input"></span>
+            <input type="text" name="user" 
+            placeholder="Github User Login"
+            /><br/>
+            <span id="passwordMeter"></span>
+            <input type="password" name="token"
+            placeholder="Github OAuth2 Token"
+            /><br/>
+            <input type="submit" value="Continue">
+            <br/>
+        </form>
+    </body> 
+</html>
