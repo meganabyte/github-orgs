@@ -3,7 +3,7 @@ github-orgs is an open-source analytics tool that generates reports on the contr
 
 ## Demo
 ![](demo1.gif)
-
+![](demo2.gif)
 
 
 ## Installation
